@@ -7,7 +7,7 @@ import { env } from 'process';
 //middlewares
 
 const port = env.PORT;
-//const app = express();
+const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
