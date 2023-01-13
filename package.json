@@ -1,5 +1,5 @@
 {
-  "name": "UberClone",
+  "name": "uberclone",
   "version": "1.0.0",
   "private": true,
   "config": {},
@@ -20,7 +20,6 @@
     "express": "^4.18.2",
     "maz-ui": "^2.4.7",
     "nuxt": "^2.15.8",
-    "ufo": "^0.8.6",
     "vue": "^2.7.10",
     "vue-server-renderer": "^2.7.10",
     "vue-template-compiler": "^2.7.10"
