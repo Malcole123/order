@@ -2,9 +2,7 @@
   "name": "UberClone",
   "version": "1.0.0",
   "private": true,
-  "config": {
-    
-  },
+  "config": {},
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",
@@ -15,16 +13,17 @@
     "lintfix": "prettier --write --list-different ."
   },
   "dependencies": {
+    "@nuxt/ufo": "^0.5.4",
     "@nuxtjs/auth-next": "*",
     "@nuxtjs/axios": "^5.13.6",
     "core-js": "^3.25.3",
     "express": "^4.18.2",
     "maz-ui": "^2.4.7",
     "nuxt": "^2.15.8",
+    "ufo": "^0.8.6",
     "vue": "^2.7.10",
     "vue-server-renderer": "^2.7.10",
-    "vue-template-compiler": "^2.7.10",
-    "@nuxt/ufo": "^0.5.4"
+    "vue-template-compiler": "^2.7.10"
   },
   "devDependencies": {
     "@nuxt/postcss8": "^1.1.3",
