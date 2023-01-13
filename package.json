@@ -30,6 +30,9 @@
     "postcss": "^8.4.21",
     "prettier": "^2.7.1"
   },
+  "engines": {
+    "node": "16.0"
+  },
   "resolutions": {
     "@nuxt/kit": "3.0.0-rc.13"
   }
