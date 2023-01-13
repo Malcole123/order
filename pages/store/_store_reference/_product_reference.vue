@@ -46,12 +46,13 @@
                             </div>
                             <div class="full-width quantity-sel-section">
                                 <span class="product-addon-heading">Quantity</span>
-                                <div class="full-width app-mt-1">
+                                <div class="full-width app-mt-1" style="max-width:100%;overflow:hidden;">
                                     <MazPagination
-                                    style="justify-content:flex-start;"
+                                    style="justify-content:flex-start;width:100%;"
                                     :dark="true"
                                     v-model="userForm.quantity"
                                     :page-count="32"
+                                    :pageRange="1"
                                     />
                                 </div>
                             </div>

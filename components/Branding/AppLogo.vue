@@ -20,5 +20,6 @@ export default {
         font-size:var(--app-text-xl);
         font-weight:700;
         cursor:pointer;
+        color:var(--app-prim-black);
     }
 </style>

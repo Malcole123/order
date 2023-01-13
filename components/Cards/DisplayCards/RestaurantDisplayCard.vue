@@ -4,6 +4,7 @@
             <img :src="cardImage" alt="">
         </div>
         <div class="card-content component-padding">
+          <slot name="card_content">
             <div class="card-content-header">
                 <span class="card-title">{{ title }}</span>
                 <span class="restaurant-rating" v-if="reviews !== null && reviews.length > 0">
@@ -26,6 +27,7 @@
                     </span>
                 </div>
             </div>
+          </slot>
         </div>
     </div>
 </template>
@@ -45,9 +47,14 @@ computed:{
     cardImage(){
         let defaultImage = "";
         if(this.image === null || this.image === undefined){ return defaultImage};
-        const { url } = this.image;
-        if(url === undefined){ return defaultImage};
-        return url 
+        if(typeof this.image === 'object'){
+            const { url } = this.image;
+            if(url === undefined){ return defaultImage};
+            return url 
+        }else if(typeof this.image === 'string'){
+            return this.image;
+        }
+     
     }
 }
 }

@@ -72,6 +72,14 @@
             <template v-slot:slide_draw_body_full>
                 <div class="navbar-menu-wrapper app-container-fluid">
                     <div class="navbar-menu-links">
+                        <div class="full-width app-flex app-flex-between-row">
+                            <span>
+                                <span>
+
+                                </span>
+                            </span>
+                            <MazBtn size="mini" @click="closeMenu" color="black">Close</MazBtn>
+                        </div>
                         <div class="full-width" v-for="(navLink,index) in userNavLinks" :key="'user-navlink-'+ index">
                             <NuxtLink :to="navLink.link" class="navbar-menu-link">{{ navLink.name }}</NuxtLink>
                         </div>

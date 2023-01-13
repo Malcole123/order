@@ -84,31 +84,7 @@
                                                     <div class="order-app-heading order-app-capitalize">
                                                         Courier
                                                     </div>
-                                                <div class="full-width">
-                                                    <span class="order-app-capitalize">
-                                                        {{ addressDisplay.streetNumber }}
-                                                    </span>
-                                                    &nbsp;
-                                                    <span class="order-app-capitalize">
-                                                        {{ addressDisplay.streetName }}
-                                                    </span>
-                                                </div>
-                                                <div class="full-width">
-                                                    <span class="order-app-capitalize">
-                                                        {{ addressDisplay.townName }}
-                                                    </span>
-                                                    &nbsp;,&nbsp;
-                                                    <span class="order-app-capitalize">
-                                                        {{ addressDisplay.parishName }}
-                                                    </span>
-                                                    .
-                                                </div>
-                                                <div class="full-width">
-                                                    <span class="order-app-capitalize">
-                                                        {{ addressDisplay.countryName }}
-                                                    </span>
-                                                    .
-                                                </div>
+                                            
                                                 </div>
                                             </div>
                                         </div>
@@ -180,7 +156,6 @@ export default {
     },
     methods:{
         formatData(){
-            console.log(this.pageData.order)
                 const { 
                 order_items,          
             } = this.pageData.order;
@@ -200,17 +175,20 @@ export default {
                         return vItem
                     }
                 })
-                console.log(oItem)
                 if(variant_selected !== undefined){
-                    image_arr.push(variant_selected.image.url);
+                    if(variant_selected.image !== null){
+                        image_arr.push(variant_selected.image.url);
+                        console.log(image_arr)
+                    }
                     variant_arr_ref.push(variant_selected.variant_reference);
                     variant_name_arr.push(`${oItem.item.quantity} x ${variant_selected.name}`)
                 }
+                /*
                 if(store_arr_ref.includes(oItem.item.product_details.store_details.store_reference) === false){
                     store_arr_ref.push(oItem.item.product_details.store_details.store_reference);
                     stores_name_arr.push(oItem.item.product_details.store_details.name.long);
                     return 
-                }
+                }*/
             })
             this.displayData.images = image_arr;
             this.displayData.all_store_names = stores_name_arr.join(' , ');

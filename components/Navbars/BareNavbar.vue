@@ -2,22 +2,14 @@
     <div class="app-navbar app-container-fluid">
         <div class="app-navbar-inner">
             <span>
-                <span class="navbar-menu-icon" @click="openMenu">
+                <span class="navbar-menu-icon" @click="goBack" v-if="state.showBack === false">
                     <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" height="30" width="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m13 16.745c0-.414-.336-.75-.75-.75h-9.5c-.414 0-.75.336-.75.75s.336.75.75.75h9.5c.414 0 .75-.336.75-.75zm9-5c0-.414-.336-.75-.75-.75h-18.5c-.414 0-.75.336-.75.75s.336.75.75.75h18.5c.414 0 .75-.336.75-.75zm-4-5c0-.414-.336-.75-.75-.75h-14.5c-.414 0-.75.336-.75.75s.336.75.75.75h14.5c.414 0 .75-.336.75-.75z" fill-rule="nonzero"/></svg>
                 </span>
+                <span class="navbar-menu-icon" @click="openMenu" v-else>
+                    <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" height="30" width="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m22 6c0-.552-.448-1-1-1h-12.628c-.437 0-.853.191-1.138.523-1.078 1.256-3.811 4.439-4.993 5.815-.16.187-.241.419-.241.651 0 .231.08.463.24.651 1.181 1.38 3.915 4.575 4.994 5.835.285.333.701.525 1.14.525h12.626c.552 0 1-.448 1-1 0-2.577 0-9.423 0-12zm-13.628.5h12.128v11h-12.126l-4.715-5.51zm5.637 4.427 1.71-1.71c.146-.146.339-.219.531-.219.404 0 .75.324.75.749 0 .193-.073.384-.219.531l-1.711 1.711 1.728 1.728c.147.147.22.339.22.53 0 .427-.349.751-.75.751-.192 0-.384-.073-.531-.219l-1.728-1.729-1.728 1.729c-.146.146-.339.219-.531.219-.401 0-.75-.324-.75-.751 0-.191.073-.383.22-.53l1.728-1.728-1.788-1.787c-.146-.148-.219-.339-.219-.532 0-.425.346-.749.751-.749.192 0 .384.073.53.219z" fill-rule="nonzero"/></svg>                </span>
             </span>
             <AppLogo @click="$router.push('/')"/>
-            <div class="app-search-wrapper">
-                <div class="app-search-input-wrapper">
-                    <span class="search-input-icon">
-                        <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m15.97 17.031c-1.479 1.238-3.384 1.985-5.461 1.985-4.697 0-8.509-3.812-8.509-8.508s3.812-8.508 8.509-8.508c4.695 0 8.508 3.812 8.508 8.508 0 2.078-.747 3.984-1.985 5.461l4.749 4.75c.146.146.219.338.219.531 0 .587-.537.75-.75.75-.192 0-.384-.073-.531-.22zm-5.461-13.53c-3.868 0-7.007 3.14-7.007 7.007s3.139 7.007 7.007 7.007c3.866 0 7.007-3.14 7.007-7.007s-3.141-7.007-7.007-7.007z" fill-rule="nonzero"/></svg>
-                    </span>
-                    <input type="text" class="app-search-input" placeholder="Search for meals near you..." v-model.trim="search.input">
-                    <span class="search-clear-icon" v-if="search.input.length > 0" @click="resetSearch">
-                        Clear
-                    </span>
-                </div>
-            </div>
+        
             <div class="app-navlinks" v-if="$auth.loggedIn === false">
                 <MazBtn color="black" size="mini" @click="$router.push('/auth/login/buyer')">Log In</MazBtn>
                 <MazBtn color="primary" size="mini"  @click="$router.push('/auth/register/buyer')">Sign Up</MazBtn>
@@ -73,6 +65,14 @@
             <template v-slot:slide_draw_body_full>
                 <div class="navbar-menu-wrapper app-container-fluid">
                     <div class="navbar-menu-links">
+                        <div class="full-width app-flex app-flex-between-row">
+                            <span>
+                                <span>
+
+                                </span>
+                            </span>
+                            <MazBtn size="mini" @click="closeMenu" color="black">Close</MazBtn>
+                        </div>
                         <div class="full-width" v-for="(navLink,index) in userNavLinks" :key="'user-navlink-'+ index">
                             <NuxtLink :to="navLink.link" class="navbar-menu-link">{{ navLink.name }}</NuxtLink>
                         </div>
@@ -97,7 +97,8 @@ export default {
     },
     props:[
         'pageLoading',
-        'hideCart'
+        'hideCart',
+        'showBack'
     ],
     data(){
         return {
@@ -110,7 +111,8 @@ export default {
             state:{
                 cartOpen:false,
                 cartLoading:false,
-                menuOpen:false
+                menuOpen:false,
+                showBack:false,
             },
             component_data:{
                 cart:{
@@ -149,7 +151,10 @@ export default {
         }
     },
     async mounted(){
-        let res = await this.fetchUserCart();
+        this.state.showBack = this.showBack;
+        if(this.hideCart !== true){
+            let res = await this.fetchUserCart();
+        }
     },
     watch:{
         pageLoading(newVal,oldVal){
@@ -158,6 +163,9 @@ export default {
                     //await this.fetchUserCart()
                 }, 400)
             }
+        },
+        showBack(newVal,oldVal){
+            this.state.showBack = newVal;
         }
     },
     methods:{
@@ -223,6 +231,9 @@ export default {
         priceFormatter(currency,amount){
             let form = new Intl.NumberFormat('en-US', {style:'currency',currency:currency});
             return form.format(amount)
+        },
+        goBack(){
+            this.$router.go(-1);
         }
 
     },
@@ -270,58 +281,6 @@ export default {
         align-items:center;
     }
 
-    .app-search-wrapper{
-        position:relative;
-    }
-
-    .app-search-input-wrapper{
-        position:relative;
-        height:fit-content;
-        width:fit-content;
-    }
-
-    .app-search-input{
-        width:22em;
-        height:40px;
-        background:var( --app-platinum);
-        padding-left:10%;
-        padding-right:15%;
-        border:none;
-        position:relative;
-    }
-
-    .app-search-input:focus{
-        outline:none;
-    }
-
-    .search-input-icon, .search-clear-icon{
-        position:absolute;
-        top:50%;
-        left:1%;
-        transform:translateY(-50%);
-        z-index:2;
-    }
-
-    .search-input-icon svg{
-        width:22px;
-        height:22px;
-    }
-
-    .search-clear-icon{
-        font-size:14px;
-        font-weight:600;
-        color:var(--app-prim-black);
-        left:auto;
-        right:0%;
-        height:100%;
-        width:fit-content;
-        display:flex;
-        align-items:center;
-        cursor:pointer;
-        padding-right:10px;
-        background:var( --app-platinum);
-    }
-
     .app-navlinks{
         margin-left:auto;
         display:flex;
@@ -359,10 +318,6 @@ export default {
     }
 
     @media (max-width:992px) {
-        .app-search-wrapper{
-            position:fixed;
-            top:-100%;
-            left:0%;
-        }
+   
     }
 </style>
