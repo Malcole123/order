@@ -1,7 +1,7 @@
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'UberClone',
+    title: 'Order App',
     htmlAttrs: {
       lang: 'en',
     },
@@ -83,7 +83,9 @@ export default {
       progress:false,
     }
   },
-
+  serverMiddleware:[
+    { path: '/api', handler: '~/api/index.js' }
+  ],
   privateRuntimeConfig: {
     axios: {
       baseURL: process.env.NUXT_ENV_BROWSER_BASE_URL,
@@ -104,6 +106,7 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+    ssr:true,
     babel: {
       plugins: [
         [
@@ -114,5 +117,9 @@ export default {
         ],
       ]
     },
+  },
+  server: {
+    port:process.env.PORT, // default: 3000
+    host:process.env.NUXT_ENV_HOST, // default: localhost
   },
 }
