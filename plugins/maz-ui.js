@@ -12,6 +12,7 @@ import {
     MazCheckbox,
     MazPhoneNumberInput,
     MazGallery, 
+    MazAvatar,
 } from 'maz-ui';
 
 
@@ -27,3 +28,4 @@ Vue.component('MazCollapse', MazCollapse);
 Vue.component('MazCheckbox', MazCheckbox);
 Vue.component('MazPhoneNumberInput', MazPhoneNumberInput);
 Vue.component('MazGallery', MazGallery);
+Vue.component('MazAvatar', MazAvatar);

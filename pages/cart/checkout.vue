@@ -413,6 +413,7 @@ export default {
             if(dt.ok){
               //Successful checkout //
               let transaction_ref = dt.transaction_reference;
+              this.$router.push(`/orders`);
               console.log(transaction_ref);
               //Use reference to link to paypal
             }else{

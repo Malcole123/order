@@ -18,19 +18,29 @@
                     <div class="full-width redeem-result-container app-md-spacing" v-for="(oRest,index) in uiFormatted.formattedArr" :key="`rest-order-${index}`">
                         <div class="full-width app-flex app-flex-between-row">
                             <h3>{{ oRest.restaurant_name }}</h3>
-                            <MazBtn size="mini" color="black" @click="redeemAllByStore(oRest.restaurant_ref)">Redeem All</MazBtn>
+                            <MazBtn size="mini" color="black" @click="redeemAllByStore(oRest.restaurant_ref , oRest.restaurant_name)">Redeem All</MazBtn>
                         </div>
                         <div class="full-width app-grid app-grid-duo app-md-spacing">
                             <div class="full-width" v-for="(oItem,oIndex) in oRest.order_items" :key="`order-item-${oIndex}`">
                                 <RestaurantDisplayCard
                                     :image="oItem.productImage"
-                                    :title="oItem.productName"
                                     :reviews="[]"
                                     :numLocations="2"
                                 >
                                     <template v-slot:card_content>
-                                        <div>
-                                            
+                                        <div class="full-width app-flex app-flex-column app-sm-spacing">
+                                            <div class="full-width app-flex app-flex-between-row">
+                                                <h6 class="restaurant-display-item">{{`${oItem.item.quantity} x ${oItem.productName}` }}</h6>
+                                                <h6 class="restaurant-display-item">{{`${oItem.priceStr}` }}</h6>
+                                            </div>
+                                            <div class="full-width">
+                                                <p>
+                                                    {{ oItem.item.description }}
+                                                </p>
+                                            </div>
+                                            <div class="full-width">
+
+                                            </div>
                                         </div>
                                     </template>
                             
@@ -40,15 +50,25 @@
                     </div>
                 </div>             
             </div>
-            <div class="redeem-action-wrapper">
-                <div class="redeem-action-container" v-if="qrComponent.visible === true">
+            <div :class="actionClass">
+                <div class="redeem-action-header app-container-fluid">
+                    <MazBtn 
+                    color="black" 
+                    size="mini"
+                    @click="disableActionWrapper"
+                    >Close</MazBtn>
+                </div>
+                <div class="redeem-action-container app-container-fluid" v-if="qrComponent.visible === true">
+                    <p>
+                        {{ qrComponent.title }}
+                    </p>
                     <div class="redeem-scanner-display">
                         <AppQrCode
                             :text="qrComponent.link"
                         />
                     </div>
                     <div class="redeem-scanner-code">
-                        DXCH6Y
+                        {{ pageData.order.redeem_code }}
                     </div>
                     <p>Scan the qr code or provide the code above to redeem your order</p>
                 </div>
@@ -109,8 +129,10 @@ export default {
       qrComponent:{
         focus_title:"",
         visible:false,
-        link:""
+        link:"",
+        title:"Scan"
       },
+      actionOpen:false,
     }
   },
   components:{
@@ -155,7 +177,6 @@ export default {
             return form.format(amount)
         },
       formatData(){
-        console.log(this.pageData.order)
         let store_references = [];
         let order_items = [...this.pageData.order.order_items];
         let filtered_arr = [];
@@ -190,11 +211,15 @@ export default {
                     if(variant.image !== null){
                         setItem.productImage = variant.image.url;
                     }else{
-                        setItem.productImage = "";
+                        setItem.productImage = 
+                        setItem.item.product_details.image !== null
+                        ? setItem.item.product_details.image.url 
+                        : 
+                         "";
                     };
                     setItem.includedItems = variant.included_items;
                     setItem.description = variant.description;
-                    setItem.priceStr = this.priceFormatter(variant.currency, variant.amount)
+                    setItem.priceStr = this.priceFormatter(variant.currency, variant.amount * setItem.item.quantity)
                     return setItem
                 }
             }).filter((filterItem,filteredIndex)=>{
@@ -214,23 +239,41 @@ export default {
             }
         });
         this.uiFormatted.formattedArr = clean_arr;
-        console.log(this.uiFormatted.formattedArr)
       },
       createQrLink({path}){
-        console.log(path)
         let base_ = process.env.NUXT_ENV_RIDER_STORE_BROWSER_BASE_URL;
         this.qrComponent.link = `${base_}/${path}`;
-        console.log(this.qrComponent.link)
       },
-      redeemAllByStore(restRef){
+      redeemAllByStore(restRef, restName){
+        this.actionOpen = true;
+        this.qrComponent.title = restName;
         let order_reference = this.pageData.order.order_reference;
         let restaurant_reference = restRef;
+        let path_arr = [order_reference , restaurant_reference];
+        let path_clean = path_arr.filter((item,index)=>{
+            if(item !== undefined){
+                return item;
+            }
+        });
+        let path_str = path_clean.join('/');
         this.qrComponent.visible = true;
-        console.log({order_reference})
         this.createQrLink({
-            path:`store/orders/redeem/${order_reference}`,
+            path:`store/orders/redeem/${path_str}`,
         })
+      },
+      disableActionWrapper(){
+        this.actionOpen = false;
       } 
+  },
+  computed:{
+    actionClass(){
+        let class_arr = ['redeem-action-wrapper'];
+        if(this.actionOpen === true){
+            class_arr.push('redeem-action-active')
+        }
+        let class_str = class_arr.join(' ')
+         return class_str;
+    }
   }
 }
 </script>
@@ -276,6 +319,9 @@ export default {
     display:flex;
     flex-direction:column;
     gap:2em;
+    border-bottom:1px solid var(--app-grey);
+    padding-top:1em;
+    padding-bottom:2em;
 }
 
 
@@ -305,8 +351,21 @@ export default {
 
 }
 
+.redeem-action-header{
+    display:none;
+    justify-content:flex-end;
+}
 
 
+.restaurant-display-item{
+    font-size:var(--app-text-base);
+    font-weight:600;
+}
+
+.restaurant-display-description{
+    font-size:var(--app-text-xs);
+
+}
 
 
 @media(max-width:992px) {
@@ -317,6 +376,26 @@ export default {
 
   .redeem-results-wrapper{
     overflow-y:hidden;
+  }
+
+  .redeem-action-wrapper{
+    position:fixed;
+    top:0px;
+    right:-100%;
+    height:100%;
+    width:100%;
+    z-index:999;
+    transition:0.3s ease-in-out;
+  }
+
+  .redeem-action-active{
+    right:0px;
+  }
+
+  .redeem-action-header{
+    display:flex;
+    padding-top:0.5em;
+    padding-bottom:0.5em;
   }
 
 

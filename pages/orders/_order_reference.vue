@@ -43,7 +43,7 @@
                                             <div class="order-app-divider"></div>
                                        </div>
                                        <div class="order-app-heading order-app-capitalize">
-                                               Redeem Type : {{ pageData.order.fulfill_type }}
+                                               Redeem Type : {{ pageData.order.fulfill_type.replaceAll("_", " ") }}
                                         </div>
                                         <div class="full-width">
                                             <div class="full-width" v-if="pageData.order.fulfill_type === 'delivery'">
@@ -87,6 +87,72 @@
                                             
                                                 </div>
                                             </div>
+                                            <div class="full-width" v-else>
+                                                <div class="full-width app-flex app-flex-column app-md-spacing">
+                                                    <div class="order-app-heading order-app-capitalize">
+                                                        Pick Up Details
+                                                    </div>
+                                                    <div class="component-padding full-width">
+                                                            <div class="order-app-divider"></div>
+                                                    </div>
+                                                    <!--List of locations here -->
+                                                    <div class="full-width app-flex app-flex-column app-md-spacing"
+                                                        v-for="(redeemSect, rIndex) in displayData.store_item_redeem"
+                                                        :key="`redeem-section-${rIndex}`"
+                                                    >
+                                                        <div class="full-width">
+                                                            <div class="order-app-heading order-app-capitalize">
+                                                                {{ redeemSect.name }}
+                                                            </div>
+                                                        </div>
+                                                        <div class="component-padding full-width">
+                                                            <div class="component-padding full-width">
+                                                                    <div class="order-app-divider"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="full-width app-grid app-grid-duo app-md-spacing">
+                                                            <div class="full-width"
+                                                                v-for="(locItem,locIndex) in redeemSect.locations"
+                                                                :key="`location-card-${locIndex}`"
+                                                            >
+                                                                <!--List Component-->
+                                                                    <SquareDisplayCard
+                                                                        :image="redeemSect.store_image"
+                                                                        :reviews="[]"
+                                                                    >
+                                                                    <template v-slot:card_body_content>
+                                                                        <div class="redeem-location-card-content">
+                                                                            <div class="redeem-card-items-wrapper">
+                                                                                <MazAvatar
+                                                                                v-for="(oItem,oIndex) in redeemSect.order_items"
+                                                                                    :key="`order-item-${oIndex}`"
+                                                                                    :src="oItem.item.product_details.image.url"
+                                                                                    :size="35"
+                                                                                    :bordered="true"
+                                                                                />
+                                                                            </div>
+                                                                            <div class="full-width app-flex app-flex-between-row">                                                  
+                                                                                <div class="width-75">
+                                                                                    <div class="order-app-heading order-app-capitalize">
+                                                                                        {{ locItem.name }}
+                                                                                    </div>
+                                                                                    <!--description _class redeem-card-desc-->
+                                                                                </div>
+                                                                                <span>
+                                                                                    <MazBtn color="black" size="mini" @click="$router.push(`/redeem/order/${pageData.order.order_reference}?focus=${redeemSect.store_ref}`)">Redeem</MazBtn>
+                                                                                </span>
+                                                                            </div>
+                                                                       
+                                                                        </div>
+                                                                    </template>                                                         
+                                                                    </SquareDisplayCard>
+
+                                                                <!--List Component End-->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="component-padding full-width">
                                             <div class="order-app-divider"></div>
@@ -110,6 +176,9 @@
 <script>
 import MainWrapper from '~/components/Wrapper/MainWrapper.vue';
 import AppLogo from '~/components/Branding/AppLogo.vue';
+import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard.vue'
+
+
 export default {
     name:"seeMyOrderPage",
     head(){
@@ -120,6 +189,7 @@ export default {
     components:{
         MainWrapper,
         AppLogo,
+        SquareDisplayCard,
     },
     data(){
         return {
@@ -130,6 +200,9 @@ export default {
                 all_store_names:"",
                 order_total_str:"",
                 all_item_names:[],
+                store_item_redeem:[
+                
+                ]
             }
         }
     },
@@ -167,6 +240,17 @@ export default {
             let variant_arr_ref  = [];
             let variant_name_arr = [];
             let image_arr = [];
+            let redeem_location_arr = [
+                /*
+                    {
+                        store_name:"",
+                        store_ref:"",
+                        stor_image:"",
+                        order_items:[],
+                        locations:[],
+                    }redeem_location_arr
+                */
+            ]
             let item_total = this.pageData.order.transaction_details.payment_due.amount;
             let item_currency = this.pageData.order.transaction_details.payment_due.currency;
             order_items.forEach((oItem,oIndex)=>{
@@ -178,28 +262,46 @@ export default {
                 if(variant_selected !== undefined){
                     if(variant_selected.image !== null){
                         image_arr.push(variant_selected.image.url);
-                        console.log(image_arr)
                     }
                     variant_arr_ref.push(variant_selected.variant_reference);
                     variant_name_arr.push(`${oItem.item.quantity} x ${variant_selected.name}`)
                 }
-                /*
+                
                 if(store_arr_ref.includes(oItem.item.product_details.store_details.store_reference) === false){
+                    console.log(oItem)
                     store_arr_ref.push(oItem.item.product_details.store_details.store_reference);
                     stores_name_arr.push(oItem.item.product_details.store_details.name.long);
+                    redeem_location_arr.push({
+                        name:oItem.item.product_details.store_details.name.long,
+                        store_ref:oItem.item.product_details.store_details.store_reference,
+                        store_image:oItem.item.product_details.store_details.promotional.image.storeLogo,
+                        locations:oItem.item.product_details.store_details.locations,
+                        order_items:[...this.pageData.order.order_items].filter((rOrderItem,rIndex)=>{
+                           if(
+                            rOrderItem.item.product_details.store_details.store_reference 
+                           === 
+                           oItem.item.product_details.store_details.store_reference){
+                            return rOrderItem;
+                           }
+                        })
+                    })
                     return 
-                }*/
+                }
             })
             this.displayData.images = image_arr;
             this.displayData.all_store_names = stores_name_arr.join(' , ');
             this.displayData.all_item_names = variant_name_arr;
             this.displayData.order_total_str = this.priceFormatter(item_currency, item_total);
-            console.log(this.displayData)
+            this.displayData.store_item_redeem = redeem_location_arr;
+            console.log(redeem_location_arr);
         },
         priceFormatter(currency,amount){
             let formatter = new Intl.NumberFormat('en-US', {style:'currency', currency:currency});
             return formatter.format(amount)
         },
+        formatRedeemStoreData(){
+
+        }
     },
     computed:{
         addressDisplay(){
@@ -297,6 +399,7 @@ export default {
     background:var(--app-background);
     height:60px;
     width:100%;
+    z-index:3;
 }
 
 
@@ -316,7 +419,7 @@ export default {
 .order-app-content-body{
     display:flex;
     flex-direction:column;
-    gap:1.2em;
+    gap:2.5em;
 }
 
 
@@ -324,6 +427,35 @@ export default {
     height:0.5px;
     width:100%;
     background:var(--app-platinum)
+}
+
+.redeem-location-card-content{
+    width:100%;
+    height:100%;
+    position:relative;
+}
+
+
+.redeem-card-items-wrapper{
+    position:absolute;
+    bottom:115%;
+    right:0%;
+    height:fit-content;
+    width:fit-content;
+    display:flex;
+    gap:0.2em;
+    align-items:center;
+    max-width:100%;
+    overflow:hidden;
+}
+
+.redeem-card-desc{
+    font-size:var(--app-text-xs);
+    display: -webkit-box;
+        -webkit-line-clamp:1;
+        -webkit-box-orient: vertical; 
+        width: 100%;
+        overflow: hidden;
 }
 
 @media (max-width:992px) {   

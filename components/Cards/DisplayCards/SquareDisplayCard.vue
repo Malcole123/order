@@ -4,19 +4,21 @@
                 <img :src="cardImage" alt="">
             </div>
             <div class="card-content component-padding">
-                <div class="card-content-header">
-                    <span class="card-title">{{ title }}</span>
-                    <span class="order-rating" v-if="reviews !== null && reviews.length > 0">
-                    <span class="material-symbols-outlined">
-                        star_outline
-                    </span>
-                    <span>
-                       -
-                    </span>
+               <slot name="card_body_content">
+                    <div class="card-content-header">
+                        <span class="card-title">{{ title }}</span>
+                        <span class="order-rating" v-if="(reviews !== null && reviews !== undefined) && reviews.length > 0">
+                        <span class="material-symbols-outlined">
+                            star_outline
+                        </span>
+                        <span>
+                        -
+                        </span>
 
-                    </span>
-            
-            </div>
+                        </span>
+                
+                    </div>
+               </slot>
             </div>
         </div>
 </template>

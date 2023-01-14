@@ -11,22 +11,30 @@
             />
 
             <div class="order-status-wrapper">
-                {{ fulfill_type }}
+                {{ fulfill_type.replaceAll("_", ' ') }}
             </div>
         </div>
 
-        <div class="order-result-content component-padding">
-            <div class="full-width order-result-text">
+        <div class="full-width component-padding">
+            <div class="full-width order-result-content ">
+                <div class="full-width order-result-text">
                 <span class="order-result-title order-result-truncate">{{ all_store_names }}</span>
-                <p class="order-result-truncate order-result-description">
-                    {{ all_item_names }}
-                </p>
                 <span class="order-result-price">
                     {{ order_total_str }}
                 </span>
+                </div>
+                <div class="full-width order-result-action">
+                    <MazBtn color="black" size="mini" :loading="loading" @click="redirectUser">See Details</MazBtn>
+                </div>
             </div>
-            <div class="full-width order-result-action">
-                <MazBtn color="black" size="mini" :loading="loading" @click="redirectUser">See Details</MazBtn>
+         
+            <div class="full-width">
+                <p class="order-result-truncate order-result-description">
+                    {{ all_item_names }}
+                </p>
+            </div>
+            <div class="full-width">
+
             </div>
         </div>
     </div>
@@ -114,7 +122,7 @@ export default {
 
 <style scoped>
     .order-result-display-card{
-        height:55vh;
+        height:60vh;
         width:100%;
         background:var(--app-prim-light);
         border:0.015em solid var(--app-platinum)
@@ -132,13 +140,13 @@ export default {
         display:grid;
         gap:0.5em;
         grid-template-columns:3fr 1fr;
-        padding:0.8em 0.4em;
+        padding:0.1em 0em;
         background:var(--app-prim-light);
     }
     .order-result-text{
         display:flex;
         flex-direction:column;
-        gap:0.2em;
+        gap:0.1em;
     }
 
     .order-result-action{
