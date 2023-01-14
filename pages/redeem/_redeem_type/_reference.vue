@@ -248,8 +248,10 @@ export default {
         this.actionOpen = true;
         this.qrComponent.title = restName;
         let order_reference = this.pageData.order.order_reference;
+        let order_redeem_reference = this.pageData.order.redeem_reference;
         let restaurant_reference = restRef;
-        let path_arr = [order_reference , restaurant_reference];
+        let path_arr = [order_reference , order_redeem_reference];
+        console.log(path_arr)
         let path_clean = path_arr.filter((item,index)=>{
             if(item !== undefined){
                 return item;
