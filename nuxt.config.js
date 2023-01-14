@@ -45,6 +45,7 @@ export default {
     // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios',
     '@nuxtjs/auth-next',
+    'nuxt-material-design-icons',
   ],
   auth:{
     redirect:{

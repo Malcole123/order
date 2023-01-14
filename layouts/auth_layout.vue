@@ -109,7 +109,7 @@
                             </MazInput>
                         </div>
                         <div class="full-width">
-                            <MazBtn color="third" 
+                            <MazBtn color="primary" 
                             :type="state.processing === false ? 'submit' : 'button'"
                             size="lg" style="width:100%;font-weight:600"
                                 :loading="state.processing"
@@ -129,6 +129,7 @@
 
 <script>
 export default {
+    auth:false,
     head(){
         let path = this.$router.history.current.fullPath;
         let res = this.pathDetermine(path)

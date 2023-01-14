@@ -19,8 +19,8 @@
                 </div>
             </div>
             <div class="app-navlinks" v-if="$auth.loggedIn === false">
-                <MazBtn color="black" size="mini" @click="$router.push('/auth/login/buyer')">Log In</MazBtn>
-                <MazBtn color="primary" size="mini"  @click="$router.push('/auth/register/buyer')">Sign Up</MazBtn>
+                <MazBtn color="black" size="mini" @click="$router.push('/auth/login')">Log In</MazBtn>
+                <MazBtn color="primary" size="mini"  @click="$router.push('/auth/register')">Sign Up</MazBtn>
             </div>
             <div class="app-navlinks" v-else>
                 <MazBtn color="black" size="mini" @click="openCart">Cart - 
@@ -134,7 +134,7 @@ export default {
                     },
                     {
                         name:"Your Favourites",
-                        link:"/favourites",
+                        link:"/me/favourites",
                         icon:"bookmark",
                     },
                 ],

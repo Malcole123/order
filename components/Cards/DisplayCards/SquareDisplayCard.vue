@@ -18,6 +18,11 @@
                         </span>
                 
                     </div>
+                    <div class="card-content-body">
+                        <p>
+                            {{ desc }}
+                        </p>
+                    </div>
                </slot>
             </div>
         </div>

@@ -130,7 +130,7 @@ export default {
                     },
                     {
                         name:"Your Favourites",
-                        link:"/favourites",
+                        link:"/me/favourites",
                         icon:"bookmark",
                     },
                 ],
