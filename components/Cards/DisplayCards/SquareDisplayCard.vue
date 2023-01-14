@@ -19,7 +19,7 @@
                 
                     </div>
                     <div class="card-content-body">
-                        <p>
+                        <p class="card-description-text">
                             {{ desc }}
                         </p>
                     </div>
@@ -86,6 +86,16 @@ export default {
     .card-title{
         font-size:var(--app-text-base);
         font-weight:600;
+    }
+
+    .card-description-text{
+        font-size:var(--app-text-xs);
+        display: -webkit-box;
+        -webkit-line-clamp:1;
+        -webkit-box-orient: vertical; 
+        width: 100%;
+        overflow: hidden;
+
     }
 
     .order-rating{
