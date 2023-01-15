@@ -119,6 +119,10 @@ export default {
                 input_loading:false,
                 input_placeholder:'Add names of grocery items ...'
             },
+            permissions:{
+                mic_allowed:false,
+                camera_allowed:false,
+            },
             listening:false,
             add_list:[],
             listener:{
@@ -183,7 +187,24 @@ export default {
             }, time);
              return 
         },
-        initiateSpeechRecognize(){
+        async userMediaPermissionsEnforce(){
+            let stream = null;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                });
+                this.permissions.mic_allowed = true;
+                return true
+                /* use the stream */
+            } catch (err) {
+                /* handle the error */
+                this.permissions.mic_allowed = false;
+                return false
+            }
+        },
+        async initiateSpeechRecognize(){
+            let req = await this.userMediaPermissionsEnforce();
+            if(req === false){ return }
             var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
             var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
             var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
