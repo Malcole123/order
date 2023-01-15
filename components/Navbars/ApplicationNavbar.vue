@@ -57,6 +57,7 @@
             <template v-slot:footer_btn>
                 <MazBtn color="black"
                 :loading="state.cartLoading"
+                v-if="userCart.cart_items.length > 0"
                 @click="checkoutUserCart"
                 >Checkout - {{ userCart.cart_total }}</MazBtn>
             </template>
@@ -265,7 +266,7 @@ export default {
         display:flex;
         align-items:center;
         border-bottom:0.5px solid  var(--app-platinum);
-        z-index:99;
+        z-index:30;
     }
 
     .app-navbar-inner{

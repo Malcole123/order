@@ -159,6 +159,8 @@ import ApplicationNavbarVue from '~/components/Navbars/ApplicationNavbar.vue';
 import MainWrapper from '~/components/Wrapper/MainWrapper.vue';
 import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard.vue';
 import StandardFooterVue from '~/components/Footers/StandardFooter.vue';
+
+
 export default {
 auth:false,
   name: 'StorePage',

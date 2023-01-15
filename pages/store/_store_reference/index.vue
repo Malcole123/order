@@ -6,12 +6,20 @@
           />
       </template>
       <template v-slot:body>
-        <div class="page-banner">
+        <div class="page-banner" v-if="successLoad === true">
             <img :src="bannerMedia.banner" :alt="''" class="store-view-banner-img" v-if="successLoad === true">
         </div>
         <div class="app-container-fluid bg-white" v-if="successLoad === true">
             <div class="store-view-header">
                 <h1 class="store-view-heading">{{ pageData.name.long }}</h1>
+                <MazBtn
+                :color="'black'"
+                size="mini"
+                v-if="pageData.store_type==='supermarket'"
+                @click="toggleGroceryListDraw"
+                >
+                Create Shopping List
+                </MazBtn>
             </div>
             <div class="store-view-body-wrapper">
                 <div class="store-product-filters">
@@ -42,6 +50,23 @@
                 </div>
             </div>
         </div>
+        <SlideDrawerVue
+        :showModal="state.drawOpen"
+        >
+          <template v-slot:slide_draw_body_full>
+            <div class="full-width">
+                <GroceryListSearchVue>
+                  <template v-slot:header_slot_right>
+                      <MazBtn 
+                      color="black"
+                      size="mini"
+                      @click="toggleGroceryListDraw"
+                      >Close</MazBtn>
+                  </template>
+                </GroceryListSearchVue>
+            </div>
+          </template>
+        </SlideDrawerVue>
       </template>
       <template v-slot:footer>
         <StandardFooter/>
@@ -55,6 +80,8 @@ import ApplicationNavbarVue from '~/components/Navbars/ApplicationNavbar.vue';
 import MainWrapper from '~/components/Wrapper/MainWrapper.vue';
 import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard.vue';
 import StandardFooter from '~/components/Footers/StandardFooter.vue';
+import SlideDrawerVue from '~/components/Modals/SlideDrawer.vue';
+import GroceryListSearchVue from '~/components/ActionComponents/GroceryListSearch.vue';
 
 export default {
   auth:false,
@@ -69,6 +96,8 @@ export default {
     ApplicationNavbarVue,
     SquareDisplayCard,
     StandardFooter,
+    SlideDrawerVue,
+    GroceryListSearchVue,
   },
   async asyncData({isDev, $axios ,route, store, env, params, query, req, res, redirect, error}) {
         let url = process.env.NUXT_ENV_STORE_IDENTIFY_URL;
@@ -111,6 +140,8 @@ export default {
     return {
         state:{
             pageLoading:true,
+            drawLoading:false,
+            drawOpen:false,
         },
         scrollSpy:{
             id:0,
@@ -184,7 +215,11 @@ export default {
         }catch(err){
             return false
         }
-    }
+    },
+    toggleGroceryListDraw(){
+      this.state.drawOpen = !this.state.drawOpen;
+    },
+
     
   }
 }
@@ -208,6 +243,9 @@ export default {
   width:100%;
   top:70px;
   padding:0.8em 0em;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
 }
 
 .store-view-heading{
