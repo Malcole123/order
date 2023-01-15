@@ -188,23 +188,26 @@ export default {
              return 
         },
         async userMediaPermissionsEnforce(){
-            let stream = null;
+            let stream = {
+                obj:{},
+                completed:false
+            };
             try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    audio: true,
+                stream.obj= await navigator.mediaDevices.getUserMedia({
+                    audio:true,
                 });
+                stream.completed = true;
                 this.permissions.mic_allowed = true;
-                return true
                 /* use the stream */
             } catch (err) {
                 /* handle the error */
                 this.permissions.mic_allowed = false;
-                return false
             }
+            return stream;
         },
         async initiateSpeechRecognize(){
-            let req = await this.userMediaPermissionsEnforce();
-            if(req === false){ return }
+            let req_ = await this.userMediaPermissionsEnforce();
+            if(req_.completed === false){ return }
             var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
             var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
             var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
