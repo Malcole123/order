@@ -193,14 +193,18 @@ export default {
                 completed:false
             };
             try {
-                stream.obj= await navigator.mediaDevices.getUserMedia({
+                navigator.mediaDevices.getUserMedia({
                     audio:true,
+                }).then(data=>{
+                    stream.obj = data;
                 });
+                console.log(stream)
                 stream.completed = true;
                 this.permissions.mic_allowed = true;
                 /* use the stream */
             } catch (err) {
                 /* handle the error */
+                console.log(err)
                 this.permissions.mic_allowed = false;
             }
             return stream;
@@ -244,7 +248,10 @@ export default {
             recognition.onstart = function(event) {
                 //Fired when the user agent has started to capture audio.
                 try{
-                    
+                    //Add event listener to expose window object to recognition to stop
+                    initBtn.addEventListener('click', (ev)=>{
+                        recognition.stop();
+                    })
                     setMicState({
                         icon:'mic_off',
                         color:'danger',
@@ -274,14 +281,11 @@ export default {
 
 
             recognition.onerror = function(event){
-                //recognition.abort();
+                recognition.stop();
             }
 
 
-            //Add event listener to expose window object to recognition to stop
-            initBtn.addEventListener('click', (ev)=>{
-                recognition.stop();
-            })
+
             //Call
             recognition.start();
         },
