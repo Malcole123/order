@@ -15,13 +15,13 @@
                 <MazBtn
                 :color="'black'"
                 size="mini"
-                v-if="pageData.store_type==='supermarket'"
+                v-if="pageData.store_type === 'supermarket'"
                 @click="toggleGroceryListDraw"
                 >
                 Create Shopping List
                 </MazBtn>
             </div>
-            <div class="store-view-body-wrapper">
+            <div class="store-view-body-wrapper" v-if="state.storeSearchOpen === false">
                 <div class="store-product-filters">
                       <div class="store-product-filters-container">
                           <div class="store-product-filter-item" 
@@ -41,7 +41,7 @@
                         :key="'product-item'+ index" 
                         :image="prod.image"
                         :title="prod.name.short"
-                        :desc="prod.product_details.description"
+                        :desc="prod.description"
                         :reviews="[]"
                         @click="$router.push(`/store/${storeReference}/${prod.product_uuid}`)"/>
                       </div>
@@ -50,12 +50,45 @@
                 </div>
             </div>
         </div>
+        <div :class="storeSearchComponent.parent_class">
+          <div class="full-width app-flex app-container-fluid" style="justify-content:flex-end;">
+            <MazBtn color="black" size="mini" @click="toggleStoreSearchView(false)">Close</MazBtn>
+          </div>
+            <div class="full-width store-search-display-container app-container-fluid"
+            >
+              <div class="full-width app-flex app-flex-column app-lg-spacing">
+                  <div class="full-width app-flex app-flex-column app-md-spacing"
+                  v-for="(item,index) in displayData.search_results"
+                  :key="`search-section-${index}`"
+                >
+                    <div class="full-width">
+                        <span class="store-search-heading">
+                            Results for " {{ item.name }} "
+                        </span>
+                    </div>
+                    <div class="full-width store-search-results-wrapper">
+                      <div class="full-width" v-for="(result,i) in item.results" :key="`result-item-${i}`">
+                          <SquareDisplayCard
+                          :image="result.image"
+                          :title="result.name.short"
+                          :desc="result.description"
+                          />
+                      </div>
+                    </div>
+                  </div>
+
+              </div>
+            </div>
+        </div>
         <SlideDrawerVue
         :showModal="state.drawOpen"
         >
           <template v-slot:slide_draw_body_full>
             <div class="full-width">
-                <GroceryListSearchVue>
+                <GroceryListSearchVue
+                :storeID="pageData.id"
+                @fetchSuccess="groceryFetchSuccess"
+                >
                   <template v-slot:header_slot_right>
                       <MazBtn 
                       color="black"
@@ -142,12 +175,14 @@ export default {
             pageLoading:true,
             drawLoading:false,
             drawOpen:false,
+            storeSearchOpen:false,
         },
         scrollSpy:{
             id:0,
         },
         displayData:{
             products:[], //displays formatted results on page load
+            search_results:[],
         }
     }
   },
@@ -173,6 +208,16 @@ export default {
                 }
             }
         }
+    },
+    storeSearchComponent(){
+      let parent_arr = ["store-search-display-wrapper"];
+      if(this.state.storeSearchOpen === true){
+        parent_arr.push('store-search-display-wrapper-active')
+      }
+      let parent_class = parent_arr.join(' ')
+      return {
+        parent_class,
+      }
     },
   },
   methods:{
@@ -219,6 +264,16 @@ export default {
     toggleGroceryListDraw(){
       this.state.drawOpen = !this.state.drawOpen;
     },
+    groceryFetchSuccess(data){
+        this.displayData.search_results = data.results;
+        this.userDelayAction(()=>{
+          this.toggleStoreSearchView(true)
+          this.toggleGroceryListDraw()
+        }, 300)
+    },
+    toggleStoreSearchView(state){
+      this.state.storeSearchOpen = state;
+    }
 
     
   }
@@ -332,6 +387,45 @@ export default {
 }
 
 
+.store-search-display-wrapper{
+  width:100%;
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  min-height:90%;
+  padding-top:90px;
+  background:var(--app-prim-light);
+  display:none;
+}
+
+.store-search-display-wrapper-active{
+  display:block;
+  height:fit-content;
+}
+
+.store-search-display-container{
+  width:100%;
+  display:grid;
+  grid-template-columns:5fr 1fr;
+  gap:1em;
+}
+
+
+.store-search-heading{
+  font-size:var(--app-text-xl);
+  font-weight:600;
+  color:var(--app-prim-black);
+}
+
+
+.store-search-results-wrapper{
+  width: 100%;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:1em;
+}
+
 
 @media (max-width:992px) {
   .store-view-body-wrapper{
@@ -348,5 +442,15 @@ export default {
   .store-product-display-section{
     grid-template-columns:repeat(2,1fr);
   }
+
+  .store-search-display-container{
+    grid-template-columns:1fr;
+  }
+
+
+  .store-search-results-wrapper{
+    grid-template-columns:repeat(2,1fr);
+  }
+
 }
 </style>

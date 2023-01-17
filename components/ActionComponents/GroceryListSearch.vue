@@ -92,7 +92,9 @@
                         <MazBtn 
                         size="lg"
                         style="width:100%"
-                        color="black"                     
+                        color="black"
+                        @click="req_searchList"
+                        :loading="state.list_item_searching"                     
                         >
                         Search {{ add_list.length }} Items
                         </MazBtn>
@@ -106,8 +108,12 @@
 
 <script>
 export default {
+    emits:[
+        'fetchSuccess'
+    ],
     props:[
-        'subTitle'
+        'subTitle',
+        'storeID'
     ],
     data(){
         return {
@@ -117,7 +123,10 @@ export default {
                 mic_color:'primary',
                 mic_loading:false,
                 input_loading:false,
-                input_placeholder:'Add names of grocery items ...'
+                input_placeholder:'Add names of grocery items ...',
+                list_item_searching:false, //Calling db to view search
+                list_fetch_error:false,
+                show_store_search:false,
             },
             permissions:{
                 mic_allowed:false,
@@ -135,7 +144,9 @@ export default {
                     if(typeof val !== 'function'){ return }
                     val()
                 },
-            }
+            },
+            results:[],
+            lastUpdate:0,
         }
     },
     methods:{
@@ -340,10 +351,44 @@ export default {
             let el_ = document.getElementById('grocery_list_scroll_component');
             if(el_ === undefined || el_ === null){ return }
             el_.scrollTop = el_.scrollHeight + 400;
+        },
+        async req_searchList(){
+            let id_ = this.storeID || 0;
+            this.state.list_item_searching = true;
+            let items = this.add_list.map((item,index)=>{return item.text});
+            let url = process.env.NUXT_ENV_GROCERY_COMPONENT_SEARCH;
+            await this.$axios.$post(url , {
+                store_id:id_,
+                search:items,
+            }).then(data=>{
+                this.results = data.results;
+                this.lastUpdate = new Date().getTime();
+                this.userDelayAction(()=>{
+                    this.state.list_item_searching = false;
+                    this.userDelayAction(()=>{
+                        //Close grocery model 
+                        this.$emit('fetchSuccess',{
+                            results:this.results,
+                        });
+                        this.add_list = [];
+                    },300)
+                }, 600)
+            }).catch(err=>{
+                this.userDelayAction(()=>{
+                    this.state.list_item_searching = false;
+                    this.state.list_fetch_error = true;
+                }, 600)
+            })
+        },
+        toggleStoreSearch(val){
+            this.state.show_store_search = val;
         }
+        
     },
     watch:{
-     
+        lastUpdate(){
+            
+        }
     }
 }
 </script>
