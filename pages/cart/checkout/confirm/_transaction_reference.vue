@@ -191,7 +191,7 @@
       </div>
     </template>
     <template v-slot:footer>
-      <StandardFooter />
+      <SkeletonFooter />
     </template>
   </MainWrapper>
 </template>
@@ -203,7 +203,7 @@ import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard
 import RestaurantDisplayCard from '~/components/Cards/DisplayCards/RestaurantDisplayCard.vue'
 import CartCheckoutCardVue from '~/components/Cart/CartCheckoutCard.vue'
 import CheckoutOptionCardVue from '~/components/Cart/CheckoutOptionCard.vue'
-import StandardFooter from '~/components/Footers/StandardFooter.vue'
+import SkeletonFooter from '~/components/Footers/SkeletonFooter.vue'
 
 export default {
   name: 'CheckoutConfirmPage',
@@ -266,7 +266,7 @@ export default {
     RestaurantDisplayCard,
     CartCheckoutCardVue,
     CheckoutOptionCardVue,
-    StandardFooter,
+    SkeletonFooter,
   },
   data() {
     let paypal_client_id = process.env.NUXT_ENV_PAYPAL_CLIENT_ID
@@ -368,7 +368,12 @@ export default {
   },
   mounted() {
     this.formatData();
-    this.checkoutReadyDetect({renderPayment:true});
+    this.userDelayAction({
+      callbck:()=>{
+        this.checkoutReadyDetect({renderPayment:true});
+      },
+      time:600,
+    })
   },
   computed: {
     allLocationsSelected(){
@@ -583,29 +588,33 @@ export default {
       //Enforces checkout to be ready to continue
       
       //for pickup select 
+      //Checks locations for picks
       let locationSelect = this.enforceAllLocationSelect();
-      let cash_arr = [ locationSelect ]
+      let pickup_arr = [ locationSelect ]
       //for online checkout
-      let online_arr = [];
+      let delivery_arr = [];
       let pass_test = []
       //Use array by type to check for true values;
       
       //Enforce location select for cash payment only
-      let checkout_type = this.pageData.payment_method;
+      let checkout_type = this.pageData.order.fulfill_type;
       let use_arr = [];
       switch(checkout_type){
-          case "online_checkout":
-              use_arr = online_arr;
+          case "pick_up":
+              use_arr = pickup_arr;
             break
-          case "cash_payment":
-              use_arr = cash_arr;
+          case "delivery":
+              use_arr = delivery_arr;
             break
       }
       pass_test = use_arr.filter((item,index)=>{ if(item === true){ return item }});
       //Ensures all test have been passed for used array
       if(pass_test.length === use_arr.length){
-        this.checkoutState.ready = true;
+        //Set payment details 
         this.setPaymentCheckout();
+        //Show payment
+        this.checkoutState.ready = true;
+        //Render Paypal 
         if(renderPayment === true){
             this.userDelayAction({
               callbck:()=>{

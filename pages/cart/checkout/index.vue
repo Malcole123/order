@@ -9,7 +9,7 @@
         <div class="checkout-body app-container">
           <div class="checkout-body-container" v-if="successLoad">
             <div class="full-width checkout-body-section">
-                  <div class="full-width checkout-body-section">
+                  <div class="full-width checkout-body-section" >
                     <div class="full-width">
                       <h3 class="checkout-heading">Your Items</h3>
                     </div>
@@ -180,46 +180,45 @@
               </div>
 
               <div class="full-width checkout-body-section">
-                <div class="full-width checkout-cart-preview checkout-body-section" v-if="checkoutReady">
+                  <div class="full-width checkout-cart-preview checkout-body-section" v-if="checkoutReady">
                     <div class="full-width">
-                      <h3 class="checkout-heading">Cart Total</h3>
+                      <h3 class="checkout-heading">Checkout Summary</h3>
                     </div>
                     <div class="full-width checkout-body-section">
-                      <div class="full-width app-flex app-flex-between-row">
-                          <div class="checkout-preview-heading">
-                            Cart Total
+                      <div class="full-width" 
+                      v-for="(detail,index) in checkoutState.checkout_summary"
+                      :key="`detail-item-`+ index"
+                      >
+                      <!--Single Start-->
+                          <div class="full-width app-flex app-flex-between-row" v-if="detail.type === 'single'">
+                            <p class="checkout-preview-description">
+                              {{ detail.description }}
+                            </p>
                           </div>
-                          <div class="checkout-preview-heading-bold">
-                            {{ userCart.cart_total }}
-                          </div>
-                          
-                      </div>
-                  
-                      <div class="full-width component-padding">
-                      <div class="checkout-divider"></div>
-                    </div>
-                      <div class="full-width app-flex app-flex-between-row">
-                          <div class="checkout-preview-heading">
-                            Service Charge
-                          </div>
-                          <div class="checkout-preview-heading-bold">
-                            {{ userCart.service_total }}
-                          </div>
-                          
-                      </div>
-                      <div class="full-width component-padding">
-                        <div class="checkout-divider"></div>
-                      </div>
-                      <div class="full-width" v-if="state.maxScrlReached">
-                          <MazBtn 
-                          color="black" 
-                          style="width:100%"
-                          :loading="state.checkoutProcessing"
-                          @click="userCheckout"
-                          >Pay Now - {{ userCart.checkout_total }}</MazBtn>
-                      </div>
-                    </div>
                     
+                          <!--Duo Start-->
+                          <div class="full-width app-flex app-flex-between-row" v-else>
+                            <div class="checkout-preview-heading">{{ detail.text_left }}</div>
+                            <div class="checkout-preview-heading-bold">{{ detail.text_right }}</div>
+                          </div>
+                          <!--Divider-->
+                          <div class="full-width component-padding">
+                            <div class="checkout-divider"></div>
+                          </div>
+                      </div>
+                    
+                      <div class="full-width">
+                        <MazBtn color="black" 
+                        :loading="state.checkoutProcessing"
+                        v-if="state.maxScrlReached === true"
+                        @click="userCheckout"
+                        style="width:100%">Continue To Pay</MazBtn>
+                        <MazBtn color="black" 
+                        v-else
+                        style="width:100%"></MazBtn>
+                      </div>
+                
+                    </div>
                   </div>
               </div>
           </div>
@@ -337,6 +336,7 @@ export default {
       state:{
         checkoutProcessing:false,
         maxScrlReached:false,
+        uiReady:false,
       },
       checkoutMet:{
         deliveryAddress:false,
@@ -345,11 +345,14 @@ export default {
       cart_total:{
         currency:"",
         amount:0,
+      },
+      checkoutState:{
+        checkout_summary:[],
       }
     }
   },
   computed:{
-    userCart(){
+        userCart(){
             let cart = this.$store.getters['user/userCartItems'];
             let cart_items = [...cart.cart_items].filter((item,index)=>{
                 if(item.item.quantity > 0){
@@ -386,12 +389,9 @@ export default {
                 remove:val.quantity === 0 ? true : false,
                 index:val.index,
             });
-            this.component_data.cart.changed = true;
+            await this.checkoutCalculate();
         },
-        async getCheckoutOptions(){
-
-        },
-        enforceDeliverySelect(val){
+        async enforceDeliverySelect(val){
           //Enforces single select for delivery option
           this.checkout_options.map((item,index)=>{
             if(index === val.index){
@@ -400,9 +400,12 @@ export default {
               item.selected = val.oldVal;
             }
             return item ;
-          })
+          });
+          if(val.newVal !== val.oldVal){
+            await this.checkoutCalculate();
+          }
         },
-        enforcePaymentSelect(val){
+        async enforcePaymentSelect(val){
             this.payment_methods.map((item,index)=>{
             if(index === val.index){
               item.selected = val.newVal;
@@ -410,7 +413,10 @@ export default {
               item.selected = val.oldVal;
             }
             return item ;
-          }) 
+          })
+          if(val.newVal !== val.oldVal){
+            await this.checkoutCalculate();
+          } 
         },
         getCurrentLocation(returnFunc){
           let location = navigator.geolocation.getCurrentPosition( 
@@ -452,12 +458,12 @@ export default {
           this.user.current_location.lng = lng;
         },
         async userCheckout(){
+          this.state.checkoutProcessing  = true;
           let ful_type = this.checkout_options.find((item,index)=>{
             if(item.selected === true){
               return item;
             }
           })
-          this.state.checkoutProcessing  = true;
           let payment_method = this.payment_methods.find((item,index)=>{
             if(item.selected === true){
                 return item
@@ -512,15 +518,102 @@ export default {
         enforceMaxScrl(){
             //Ensures user scrolls and views all parts of checkout before showing checkut
             let scrlPos = scrollY;
-            let maxScrl = document.querySelector('body').scrollHeight;
+            let maxScrl = document.querySelector('body').scrollTop;
             console.log({maxScrl,scrlPos})
-            if(scrlPos >= maxScrl/2){
+            if(scrlPos >= maxScrl/2.8){
                 this.state.maxScrlReached = true; 
                 window.removeEventListener('scroll', this.enforceMaxScrl)  
             }
-        }
+        },
+        generateCheckoutInstructions(payment_method){
+          let key = payment_method.payment_key;
+          let instruction = "";
+          switch(key){
+            case "online_checkout":
+                  instruction = "Complete your payment to submit your order. After a succesful checkout you will receive instructions to collect your order.";
+              break
+            case "cash_payment":
+                instruction = "Complete your payment to submit your order. After a successful checkout you will receive instructions to collect your order in store. You will still need to pay the total for the items when you arrive for pick-up in store.";
+              break
+          };
+          return instruction;
+        },
+        setPaymentCheckout({paymentMethod, service_charge}){
+          
+        //Calculates total due for order to be processed and sets labels
+        let item_total_section = this.createCheckoutLabel({
+            type:'duo',
+            description:"",
+            text_left:"Item Total ",
+            text_right:this.priceFormatter(this.cart_total.currency, this.cart_total.amount),
+        })        
+        let service_section = this.createCheckoutLabel({
+            type:'duo',
+            description:"",
+            text_left:"Service Charge",
+            text_right:this.priceFormatter(service_charge.currency, service_charge.amount),
+        })
+        
+        //If payment handle has been specified by db function display to UI
+        let item_total_price = service_charge.amount + this.cart_total.amount ;
+        let payment_due = this.createCheckoutLabel({
+            type:'duo',
+            description:'',
+            text_left:'Total Due',
+            text_right:this.priceFormatter(this.cart_total.currency, item_total_price)
+        })
+        let instruction_section = this.createCheckoutLabel({
+          type:'single',
+          description:this.generateCheckoutInstructions(paymentMethod),
+        });
+        //Add 
+        this.checkoutState.checkout_summary = [item_total_section , service_section , payment_due, instruction_section];
+        },
+        createCheckoutLabel({type, text_left , text_right , description}){
+          let checkout_obj = {
+            type,
+            text_left,
+            text_right,
+            description,
+          };
+            return checkout_obj;
+        },
+        async checkoutCalculate(){
+          let ful_type = this.checkout_options.find((item,index)=>{
+            if(item.selected === true){
+              return item;
+            }
+          })
+          let payment_method = this.payment_methods.find((item,index)=>{
+            if(item.selected === true){
+                return item
+            }
+          })
+          //Gets service charge from db
+          let url = process.env.NUXT_ENV_TRANSACTION_SERVICE_CHARGE;
+          await this.$axios.$post(url, {
+              ful_type:ful_type.component_key,
+              payment_method:payment_method.payment_key,
+              item_total:{
+                currency:this.cart_total.currency,
+                amount:this.cart_total.amount,
+              }
+          }).then(data=>{
+            this.setPaymentCheckout({paymentMethod:payment_method, service_charge:data});
+            this.userDelayAction(()=>{
+              this.state.uiReady = true;
+            }, 300)
+          }).catch(err=>{
+            this.$toast.open({
+              message:"Something went wrong calculating your total.",
+              type:'error'
+            })
+          })
+        },
   },
-  mounted(){
+  async mounted(){
+    // Call and set checkout 
+    await this.checkoutCalculate();
     window.addEventListener('scroll', this.enforceMaxScrl )
   },
 }
