@@ -9,13 +9,18 @@
                     {{ desc }}
                 </p>
             </span>
+            <span v-if=" addons !== undefined && addons.length >= 1">
+                <p class="checkout-card-description">
+                    {{ `${addons.length} add-ons selected - ${addon_total_str}`  }}
+                </p>
+            </span>
             <span>
                 <p class="checkout-card-description">
                     <span>{{ `${select_value} x ${price_str}` }} | <span class="checkout-card-price">{{ total_price_str }}</span></span>
                 </p>
             </span>
         </div>
-        <div class="full-width">
+        <div class="full-width" v-if="disableChange !== true">
             <MazSelect
             :placeholder="'Quantity'"
             :options="quantitySel"
@@ -40,7 +45,9 @@ export default {
         'title',
         'desc',
         'quantity',
-        'price'
+        'price',
+        'addons',
+        'disableChange'
     ],
     data(){
         return {
@@ -57,7 +64,9 @@ export default {
             ],
             select_value:null,
             price_str:"",
+            addon_total_str:"",
             total_price_str:"",
+            item_addons:[]
         }
     },
     watch:{
@@ -71,10 +80,14 @@ export default {
         price(newVal,oldVal){
             this.calculateTotals();
         },
+        addons(newVal,oldVal){
+            this.calculateTotals()
+        }
 
     },  
     mounted(){
         this.select_value = this.quantity || 1;
+        this.item_addons = this.addons || [];
         if(this.price === undefined){ return }
         this.calculateTotals(); //Calculate card totals
         if(this.quantity !== null){
@@ -106,7 +119,19 @@ export default {
         calculateTotals(){
             this.price_str = this.moneyFormatter({currency:this.price.currency, amount:this.price.amount});
             let quant_total = this.price.amount * this.select_value;
-            this.total_price_str = this.moneyFormatter({currency:this.price.currency, amount:quant_total})
+            let addon_total = 0;
+            
+            let addon_arr = this.addons.map((item,index)=>{return item.price.amount * item.quantity})
+            if(addon_arr.length >= 1){
+                addon_total = addon_arr.reduce((prevVal,nextVal)=>{
+                    return prevVal + nextVal;
+                });
+            }else{
+                addon_total = 0;
+            }
+
+            this.addon_total_str = this.moneyFormatter({currency:this.price.currency, amount:addon_total})
+            this.total_price_str = this.moneyFormatter({currency:this.price.currency, amount:quant_total + addon_total})
         }
     }
 }

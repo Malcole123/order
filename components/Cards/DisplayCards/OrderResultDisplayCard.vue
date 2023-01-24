@@ -16,15 +16,20 @@
         </div>
 
         <div class="full-width component-padding">
+          <slot name="card_content">
             <div class="full-width order-result-content ">
                 <div class="full-width order-result-text">
                 <span class="order-result-title order-result-truncate">{{ all_store_names }}</span>
                 <span class="order-result-price">
-                    {{ order_total_str }}
+                   <slot name="price_slot">
+                        {{ order_total_str }}
+                   </slot>
                 </span>
                 </div>
                 <div class="full-width order-result-action">
-                    <MazBtn color="black" size="mini" :loading="loading" @click="redirectUser">See Details</MazBtn>
+                    <slot name="action_btn_right_top">
+                        <MazBtn color="black" size="mini" :loading="loading" @click="redirectUser">See Details</MazBtn>
+                    </slot>
                 </div>
             </div>
          
@@ -36,6 +41,7 @@
             <div class="full-width">
 
             </div>
+          </slot>
         </div>
     </div>
 </template>

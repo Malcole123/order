@@ -43,7 +43,15 @@
                             <div class="full-width" v-for="(order,index) in myOrders.orders" :key="'filtered-order-'+index">
                                 <OrderResultDisplayCard
                                     :order="order"
-                                />
+                                >
+                                    <template v-slot:price_slot>
+                                        <p><!--Information Here--></p>
+                                    </template>
+                                    <template v-slot:action_btn_right_top>
+                                        <MazBtn color="black" size="mini" v-if="order.status === 'in_progress'" @click="$router.push(`/redeem/${order.fulfill_type}/${order.order_reference}`)">Redeem Now</MazBtn>
+                                        <MazBtn color="black" size="mini" v-else-if="order.status === 'pending'" @click="$router.push(`/cart/checkout/confirm/${order.transaction_details.transaction_reference}`)">Confirm Order</MazBtn>
+                                    </template>
+                                </OrderResultDisplayCard>
                             </div>
                         </div>
                         <div class="empty-order-display" v-else>
@@ -210,6 +218,11 @@ export default {
     display:flex;
     flex-direction:column;
     gap:1em;
+}
+
+.order-result-card-content{
+    width:100%;
+    height:100%;
 }
 
 @media (max-width:992px) {

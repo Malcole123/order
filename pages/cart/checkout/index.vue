@@ -1,7 +1,9 @@
 <template>
     <MainWrapper>
       <template v-slot:navbar>
-          <BareNavbar/>
+          <BareNavbar
+            :hideCart="true"
+          />
       </template>
       <template v-slot:body>
         <div class="checkout-body app-container">
@@ -27,6 +29,7 @@
                                 :desc="cItem.item.special_instruction"
                                 :price="cItem.item.price"
                                 @valueChanged="updateUserQuantity"
+                                :addons="cItem.item.addons"
                             />
                         </MazListItem>
                     </MazList>
@@ -142,6 +145,33 @@
                   </div>
                   <div class="full-width checkout-body-section">
                     <div class="full-width">
+                      <h3 class="checkout-heading">Payment Method</h3>
+                    </div>
+                    <div class="full-width">
+                      <form class="full-width checkout-body-section">
+                          <div class="checkout-option-wrapper" v-for="(opt,index) in payment_methods" :key="'payment-option-item-'+index">
+                              <CheckoutOptionCardVue 
+                                :index="index"       
+                                :title="opt.title"
+                                :selected="opt.selected"
+                                @selectChange="enforcePaymentSelect"
+                                >
+                              <template v-slot:option_body>
+
+                              </template>
+                              
+                              </CheckoutOptionCardVue>
+                          </div>
+                      </form>
+                    </div>
+                  </div>
+                  <div class="full-width component-padding">
+                    <div class="component-padding">
+                      <div class="checkout-divider"></div>
+                    </div>
+                  </div>
+                  <div class="full-width checkout-body-section">
+                    <div class="full-width">
                       <h3 class="checkout-heading">Refund Policy</h3>
                       <p>If an item is unavailable it will be removed from your order and you will be refunded the full price of the item.</p>
                     </div>
@@ -150,7 +180,7 @@
               </div>
 
               <div class="full-width checkout-body-section">
-                <div class="full-width checkout-cart-preview checkout-body-section">
+                <div class="full-width checkout-cart-preview checkout-body-section" v-if="checkoutReady">
                     <div class="full-width">
                       <h3 class="checkout-heading">Cart Total</h3>
                     </div>
@@ -180,7 +210,7 @@
                       <div class="full-width component-padding">
                         <div class="checkout-divider"></div>
                       </div>
-                      <div class="full-width">
+                      <div class="full-width" v-if="state.maxScrlReached">
                           <MazBtn 
                           color="black" 
                           style="width:100%"
@@ -213,11 +243,20 @@ import CartCheckoutCardVue from '~/components/Cart/CartCheckoutCard.vue';
 import CheckoutOptionCardVue from '~/components/Cart/CheckoutOptionCard.vue';
 import StandardFooter from '~/components/Footers/StandardFooter.vue';
 export default {
-  auth:false,
   name: 'Checkout',
   head(){
+    let paypal_client_id = process.env.NUXT_ENV_PAYPAL_CLIENT_ID;
     return {
       title:"Checkout",
+      script:[
+        {
+            src:`https://www.paypal.com/sdk/js?client-id=${paypal_client_id}&buyer-country=JM`,
+            callback:()=>{
+                console.log('run')
+            },
+            async:true,
+        }
+      ]
     }
   },
   async asyncData({$axios, route, store, env, params, query, req, res, redirect, error}) {
@@ -238,7 +277,7 @@ export default {
   data(){
     return {
       checkout_options:[
-        {
+        /*{
           title:"Delivery",
           selected:true,
           component_key:"delivery",
@@ -246,16 +285,28 @@ export default {
             name:"",
             input_value:""
           },
-        },
+        },*/
         {
           title:"Pick Up",
-          selected:false,
+          selected:true,
           component_key:"pick_up",
           selected_location:{
             name:"",
             input_value:""
           },
 
+        }
+      ],
+      payment_methods:[
+        {
+          title:"Online Checkout",
+          payment_key:"online_checkout",
+          selected:true,
+        },
+        {
+          title:"Cash Payment",
+          payment_key:"cash_payment",
+          selected:false,
         }
       ],
       user:{
@@ -284,7 +335,8 @@ export default {
         ],
       },
       state:{
-        checkoutProcessing:false
+        checkoutProcessing:false,
+        maxScrlReached:false,
       },
       checkoutMet:{
         deliveryAddress:false,
@@ -305,10 +357,10 @@ export default {
                 }
             })
             let cart_total = this.priceFormatter('JMD', cart.cart_total);
-            let service_charge = 650;
+            let service_charge = 350;
             let service_total = this.priceFormatter('JMD', service_charge );
             let checkout_total = this.priceFormatter('JMD', service_charge + cart.cart_total);
-            this.cart_total.amount = service_charge + cart.cart_total;
+            this.cart_total.amount = cart.cart_total;
             this.cart_total.currency = 'JMD';
             return {
                 cart_items,
@@ -316,6 +368,10 @@ export default {
                 service_total,
                 checkout_total,
             }
+        },
+        checkoutReady(){
+            //Determines if a checkout preview can be showm
+            return true
         }
   },
   methods:{
@@ -345,6 +401,16 @@ export default {
             }
             return item ;
           })
+        },
+        enforcePaymentSelect(val){
+            this.payment_methods.map((item,index)=>{
+            if(index === val.index){
+              item.selected = val.newVal;
+            }else{
+              item.selected = val.oldVal;
+            }
+            return item ;
+          }) 
         },
         getCurrentLocation(returnFunc){
           let location = navigator.geolocation.getCurrentPosition( 
@@ -380,7 +446,7 @@ export default {
               return data;
           });
           return dt
-        },
+        },  
         setUserCurrentLocation({lat,lng}){
           this.user.current_location.lat = lat;
           this.user.current_location.lng = lng;
@@ -392,6 +458,11 @@ export default {
             }
           })
           this.state.checkoutProcessing  = true;
+          let payment_method = this.payment_methods.find((item,index)=>{
+            if(item.selected === true){
+                return item
+            }
+          })
           let dt = await this.$store.dispatch('user/userCartCheckout', {
             delivery:{
               street_name:this.user.delivery.street_name,
@@ -403,24 +474,29 @@ export default {
               customer_phone:this.user.delivery.customer_phone_formatted,
             },
             fulfill_type:ful_type.component_key,
-            checkout_total:{
+            order_item_total:{
               currency:this.cart_total.currency,
               amount:this.cart_total.amount,
-            }
+            },
+            payment_method:payment_method.payment_key,
           });
-          this.userDelayAction(()=>{
+          if(dt.ok){
+            this.userDelayAction(()=>{
             this.state.checkoutProcessing = false;
-            if(dt.ok){
-              //Successful checkout //
-              let transaction_ref = dt.transaction_reference;
-              this.$router.push(`/orders`);
-              console.log(transaction_ref);
-              //Use reference to link to paypal
-            }else{
+            this.$router.push(`/cart/checkout/confirm/${dt.transaction_reference}`);
 
-            }
           }, 1200)
-          return dt
+          }else{
+            this.userDelayAction(()=>{
+            this.state.checkoutProcessing = false;
+            this.$toast.open({
+                message:"Someting went wrong",
+                type:'error'
+            })
+
+            }, 1200)
+          }
+          return 
         },
         userDelayAction(callbck, time){
           setTimeout(()=>{
@@ -432,8 +508,21 @@ export default {
             this.user.delivery.customer_phone_formatted = val.e164
 
           }
+        },
+        enforceMaxScrl(){
+            //Ensures user scrolls and views all parts of checkout before showing checkut
+            let scrlPos = scrollY;
+            let maxScrl = document.querySelector('body').scrollHeight;
+            console.log({maxScrl,scrlPos})
+            if(scrlPos >= maxScrl/2){
+                this.state.maxScrlReached = true; 
+                window.removeEventListener('scroll', this.enforceMaxScrl)  
+            }
         }
-  }
+  },
+  mounted(){
+    window.addEventListener('scroll', this.enforceMaxScrl )
+  },
 }
 </script>
 

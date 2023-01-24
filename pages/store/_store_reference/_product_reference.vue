@@ -3,6 +3,7 @@
       <template v-slot:navbar>
           <ApplicationNavbarVue
             :pageLoading="state.pageLoading"
+            :forceCartShow="state.showCart"
           />
       </template>
       <template v-slot:body>
@@ -52,7 +53,7 @@
                                     :dark="true"
                                     v-model="userForm.quantity"
                                     :page-count="32"
-                                    :pageRange="1"
+                                    :pageRange="3"
                                     />
                                 </div>
                             </div>
@@ -97,7 +98,34 @@
                                                                     {{ priceFormatter(opt.price.amount,opt.price.currency) }}
                                                                 </span>
                                                             </div>
-                                                            <MazCheckbox color="black" v-model="opt.item_selected" @input="selectAddonOption"/>
+                                                            <div>
+                                                                <div v-if="opt.max_add === 1">
+                                                                    <MazCheckbox color="black" v-model="opt.item_selected" @input="selectAddonOption"/>
+                                                                </div>
+                                                                <div v-else style="width:120px;">
+                                                                    <MazInput
+                                                                    placeholder="Select Quantity"
+                                                                    type="number"
+                                                                    :min="0"
+                                                                    color="black"
+                                                                    :disabled="true"
+                                                                    :id="`item-quantity-input-${i}`"
+                                                                    v-model="opt.quantity"
+                                                                    style="background:#fff;color:#000;text-align:center;"
+                                                                    >
+                                                                        <template v-slot:icon-left>
+                                                                            <div  @click="decreaseAddonQuantity(opt, `item-quantity-input-${i}`)">
+                                                                                <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.002 2.005c5.518 0 9.998 4.48 9.998 9.997 0 5.518-4.48 9.998-9.998 9.998-5.517 0-9.997-4.48-9.997-9.998 0-5.517 4.48-9.997 9.997-9.997zm4.253 9.25h-8.5c-.414 0-.75.336-.75.75s.336.75.75.75h8.5c.414 0 .75-.336.75-.75s-.336-.75-.75-.75z" fill-rule="nonzero"/></svg>
+                                                                            </div>
+                                                                        </template>
+                                                                        <template v-slot:icon-right>
+                                                                            <div @click="increaseAddonQuantity(opt, `item-quantity-input-${i}`)">
+                                                                                <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12.002 2c5.518 0 9.998 4.48 9.998 9.998 0 5.517-4.48 9.997-9.998 9.997-5.517 0-9.997-4.48-9.997-9.997 0-5.518 4.48-9.998 9.997-9.998zm-.747 9.25h-3.5c-.414 0-.75.336-.75.75s.336.75.75.75h3.5v3.5c0 .414.336.75.75.75s.75-.336.75-.75v-3.5h3.5c.414 0 .75-.336.75-.75s-.336-.75-.75-.75h-3.5v-3.5c0-.414-.336-.75-.75-.75s-.75.336-.75.75z" fill-rule="nonzero"/></svg>
+                                                                            </div> 
+                                                                        </template>
+                                                                    </MazInput>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                 </MazListItem>
                                             </MazList>
@@ -142,7 +170,10 @@
                           
                     </div>
                   
-                    <MazBtn color="black" type="submit" :loading="userForm.processing">Add To Cart</MazBtn>
+                    <MazBtn color="black" type="submit" :loading="userForm.processing">    
+                        Add To Cart - {{ selectionTotal }}
+                    
+                    </MazBtn>
                 </form>  
             </div>
         </div>
@@ -207,6 +238,19 @@ auth:false,
             selected_addons:[],
             drink_selections:[],
             special_instructions:"",
+            price:{
+                unit_price:{
+                    currency:"",
+                    amount:0,
+                    price_str:"",
+                },
+                addonPrice:[
+                    {
+                        currency:"",
+                        amount:0,
+                    }
+                ]
+            }
         },
         menuSelection:{
             selection_options:{
@@ -235,6 +279,7 @@ auth:false,
         },
         state:{
             pageLoading:true,
+            showCart:false,
         }
     }
   },
@@ -261,6 +306,7 @@ auth:false,
                 addon_ref:item.addon_ref,
                 quantity:item.quantity,
                 description:"",
+                price:item.price,
             }
         })
 
@@ -278,6 +324,9 @@ auth:false,
         if(res.ok){
             this.userDelayAction(()=>{
                 this.userForm.processing = false;
+                this.userDelayAction(()=>{
+                    this.state.showCart = true;
+                },400)
             },1200)
         }else{
             this.userDelayAction(()=>{
@@ -294,6 +343,7 @@ auth:false,
     dataTransform(){
         let data = this.pageData;
         if(data === undefined){ return }
+        console.log(data)
         const { variants } = data;
         if(variants === undefined) { return }
         //this.menuSelection.selection_options.selections = [{'name':'none','variant_reference':null}]
@@ -301,23 +351,29 @@ auth:false,
     },
     getDataFromVariant(){
         let variants = this.pageData.variants;
+        //Finds variant from selection reference in select input
         variants.find((item,index)=>{
             if(item.variant_reference === this.userForm.selected_item_ref){
                 const { name , description, image, currency, amount} = item;
                 let price_str = this.priceFormatter(amount, currency)
                 if(name != undefined && description !== undefined && image !== undefined){
+                    //Sets display data from selection for display
                     this.setDisplayData({
                         description:description.length > 0 ? description : 'No description provided',
                         imageUrl:typeof image === 'object' && image !== null? image.url : "",
                         priceStr:price_str,
                         included_items:item.included_items,
                     });
+                    //Sets addon data to ui for user selection 
                     this.setAddOnData()
+                    //Set price selection price
+                    this.setSelectionUnitPrice({
+                        currency:currency,
+                        amount:amount,
+                    })
                 }
             }
         });
-
-
     },
     setDisplayData({priceStr, description, imageUrl, included_items}){
         this.displayData.description = description;
@@ -347,6 +403,26 @@ auth:false,
                 return item;
             }
         })
+    },
+    setSelectionUnitPrice({currency, amount }){
+        this.userForm.price.unit_price.currency = currency;
+        this.userForm.price.unit_price.amount = amount;
+        this.userForm.price.unit_price.price_str = this.priceFormatter(amount , currency)
+    },
+    setAddonPriceArray(){
+        let addons = this.userForm.selected_addons;
+        let price_array = [...addons].map((item,index)=>{
+            const { quantity, item_selected, price } = item; 
+            //Uses quantity if defined and 1 if not 
+            let use_quantity = quantity || 1;
+            let use_price = price || { amount:0 , currency:'JMD'};
+            let use_total = use_quantity * use_price.amount;
+            return {
+                amount:use_total,
+                currency:use_price.currency,
+            };
+        });
+        this.userForm.price.addonPrice = price_array;
     },
     priceFormatter(amt,currency){
         let use_currency = currency || 'JMD';
@@ -394,10 +470,52 @@ auth:false,
             })
         });
         this.userForm.selected_addons = clean_arr;
+        //Updates addon price array from selections
+        this.setAddonPriceArray();
+    },
+    increaseAddonQuantity(addonItem, id){
+        //Find if item is in array
+        let setQuantity = 1;
+        let found = this.userForm.selected_addons.find((item,index)=>{
+            if(item.addon_ref === addonItem.addon_ref){
+                item.quantity = item.quantity + 1;
+                setQuantity = item.quantity;
+                return item ;
+            }
+        })
+        //If  not found
+        if(found === undefined){
+            addonItem.quantity = 1;
+            this.userForm.selected_addons.push(addonItem)
+        }else{
+            
+        }
+        this.setAddonPriceArray()
+        this.setNewValue(id, setQuantity )
+    },
+    decreaseAddonQuantity(addonItem, id){
+        if(addonItem.quantity === 0){ return }
+        //Find if item is in array
+        let setQuantity = 1;
+        let found = this.userForm.selected_addons.find((item,index)=>{
+            if(item.addon_ref === addonItem.addon_ref){
+                item.quantity = item.quantity - 1;
+                setQuantity = item.quantity;
+                return item ;
+            }
+        })
+        this.setNewValue(id, setQuantity );
+        this.setAddonPriceArray();
+    },
+    setNewValue(id, val){
+        let input = document.getElementById(id);
+        if(id === null || id === undefined){ return }
+        input.value = val;
+
     },
     updateSelectQuantity(val){
         this.userForm.quantity = val;
-        alert(val)
+       
     },
     //UI FORMATTER
     toggleSectionCollapse(index){
@@ -439,7 +557,24 @@ auth:false,
                 currentSelect:items.length,
                 restrict,
             }
-        }
+        },
+        selectionTotal(){
+            //Enforce currency for single item for variants mandatory or wil break 
+            let item_price = this.userForm.price.unit_price;
+            let use_addon_total = 0;
+            let addon_price_array = this.userForm.price.addonPrice;
+            let addon_total = [...addon_price_array].map((item,index)=>{
+                return item.amount;
+            });
+            if(addon_total.length > 0){
+                use_addon_total = [...addon_total].reduce((prev,next)=>{ return prev + next });
+            }
+            //Item quantity total 
+            let quantity_total = item_price.amount * this.userForm.quantity;
+            let all_total = quantity_total + use_addon_total;
+            let add_total_str = this.priceFormatter(all_total , item_price.currency);
+            return add_total_str;
+        },
   }
 }
 </script>

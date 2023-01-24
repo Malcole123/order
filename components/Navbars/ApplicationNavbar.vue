@@ -49,6 +49,7 @@
                                 :desc="cItem.item.special_instruction"
                                 :price="cItem.item.price"
                                 @valueChanged="updateUserQuantity"
+                                :addons="cItem.item.addons"
                             />
                         </MazListItem>
                     </MazList>
@@ -84,6 +85,9 @@
                         <div class="full-width" v-for="(navLink,index) in userNavLinks" :key="'user-navlink-'+ index">
                             <NuxtLink :to="navLink.link" class="navbar-menu-link">{{ navLink.name }}</NuxtLink>
                         </div>
+                        <div class="full-width" v-if="$auth.loggedIn === true">
+                            <MazBtn color="black" outline size="mini" @click="userLogout">Log Out</MazBtn>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -104,7 +108,8 @@ export default {
         CartCheckoutCardVue,
     },
     props:[
-        'pageLoading'
+        'pageLoading',
+        'forceCartShow'
     ],
     data(){
         return {
@@ -151,7 +156,7 @@ export default {
                         icon:"bookmark",
                     }
                 ]
-            }
+            },
             
         }
     },
@@ -165,13 +170,21 @@ export default {
                     //await this.fetchUserCart()
                 }, 400)
             }
+        },
+        forceCartShow(newVal,oldVal){
+            if(newVal === true){
+                this.openCart();
+            }else{
+                this.closeCart();
+            }
         }
     },
     methods:{
         resetSearch(){
             this.search.input = ""
         },
-         openCart(){
+        openCart(){
+            this.cartOpen = false;
             this.state.cartOpen = true;
         },
         closeCart(){
@@ -230,8 +243,13 @@ export default {
         priceFormatter(currency,amount){
             let form = new Intl.NumberFormat('en-US', {style:'currency',currency:currency});
             return form.format(amount)
+        },
+        userLogout(){
+            this.closeMenu();
+            this.userDelayAction(()=>{
+                this.$auth.logout();
+            },200)
         }
-
     },
     computed:{
         userCart(){

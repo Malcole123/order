@@ -28,7 +28,10 @@ export default {
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
     {src:'~/plugins/maz-ui.js', ssr:true},
-    {src:'~/plugins/qrcode.js', mode:'client'}
+    {src:'~/plugins/toastnotification.js', ssr:true},
+    {src:'~/plugins/qrcode.js', mode:'client'},
+    {src:'~/plugins/paypal.client.js', ssr:false},
+    {src:"~/plugins/lottie-vue-player.client.js",ssr:true}
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -46,7 +49,7 @@ export default {
     '@nuxtjs/axios',
     '@nuxtjs/auth-next',
     'nuxt-material-design-icons',
-  ],
+    ['cookie-universal-nuxt', { SameSite: 'Strict' }],  ],
   auth:{
     redirect:{
       login:'/auth/login',

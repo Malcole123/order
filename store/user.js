@@ -30,32 +30,22 @@ const getters = {
         let cart_items = state.cart.cart_items;
         let cart_total = 0;
         [...cart_items].forEach((cart_item,index)=>{
-            const { item } = cart_item;
+            const { item  } = cart_item;
             let total = item.price.amount * item.quantity;
-            cart_total= cart_total + total;
+            let addon_arr = item.addons.map((addonItem,i)=>{
+                return addonItem.quantity * addonItem.price.amount;
+            })
+            let addon_total = 0;
+            if(addon_arr.length >= 1){
+                addon_total = addon_arr.reduce((prevVal,nextVal)=>{return prevVal + nextVal})
+            }
+            let cart_item_total = total + addon_total
+            cart_total = cart_total + cart_item_total;
         })
         return {
             cart_total,
             cart_items,
         };
-    },
-    getMyTickets(state){
-        let ticket_data = state.tickets.data;
-        return ticket_data;
-    },
-    getEventData(state){
-        let data_arr = state.tickets.data.event_sorted;
-       return (event_reference )=>{
-            let arr = data_arr.find((item,index)=>{
-                const { event_details } = item;
-                if(event_details.event_reference === event_reference){
-                    return item;
-                }
-            });
-        return arr;
-       }
-     
-
     },
     seeMyOrders(state){
         let orders = state.orders;
@@ -133,6 +123,7 @@ const actions = {
         try {
             status = res.status;
             let data = res.data.user;
+            return_.ok = true;
             return_.message = "Success !"
             state.commit('setUserFromLogin', data);
             return return_
@@ -208,12 +199,13 @@ const actions = {
         return request_
 
     },
-    async userCartCheckout(state , { delivery, fulfill_type, checkout_total }){
+    async userCartCheckout(state , { delivery, fulfill_type, order_item_total, payment_method }){
         let url = process.env.NUXT_ENV_USER_CHECKOUT ;
         let dt = await this.$axios.$post(url, {
             delivery,
             fulfill_type,
-            checkout_total,
+            order_item_total,
+            payment_method,
         }, {progress:false}).then(data=>{
             return {
                 ok:true,

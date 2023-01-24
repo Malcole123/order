@@ -89,7 +89,7 @@
                                 clearable
                                 type="password"
                                 :success="state.error.password.success"
-                                :error="state.error.password.erro"
+                                :error="state.error.password.error"
                                 :warning="state.error.password.warning"
                                 :dark="true"
                                 :required="true"
@@ -192,22 +192,26 @@ export default {
             try{
                 switch(type_){
                     case "login":
-                            response_ = await this.loginAction()
+                            response_ = await this.loginAction();
+                            if(response_.ok === false){
+                                this.errorHandle('Incorrect email or password.')
+                            }else{
+                                this.$router.push('/')
+                            }
                             break
                     case "register":
                             response_ = await this.registerAction();
+                            if(response_.ok === false){
+                                this.errorHandle('Something went wrong')
+                            }else{
+                                this.$router.push('/')
+                            }
                             break
                     
                 }
-
-                if(response_.ok){
-                    this.$router.push('/');
-                }else{
-                    this.errorHandle();
-                }
             }catch(err){
                 //Show Event Handle Area 
-                this.errorHandle();
+                this.errorHandle('Something went wrong.');
                 return 
             }
         },
@@ -230,10 +234,14 @@ export default {
             });
             return data;
         },
-        errorHandle(){
+        errorHandle(message){
             this.state.error.email.error = true;
                 this.state.error.password.error = true;
                 this.state.processing = false;
+                this.$toast.open({
+                    message,
+                    type: 'error',
+                })
         },
         
     },
@@ -302,7 +310,7 @@ export default {
 
     .app-auth-heading{
         color:var(--app-prim-light);
-        font-size:var(--app-text-xl);
+        font-size:var(--app-text-lg);
         margin:0px;
         text-transform:capitalize;
     }
@@ -310,7 +318,7 @@ export default {
     .app-auth-heading-redirect{
         text-decoration:none;
         color:var(--app-prim-light);
-        font-size:var(--app-text-base);
+        font-size:var(--app-text-xs);
         margin:0px;
         font-weight:700;
         word-spacing:0.1em;

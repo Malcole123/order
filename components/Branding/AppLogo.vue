@@ -1,6 +1,6 @@
 <template>
     <div class="app-logo" @click="$emit('click')">
-        Munchies
+        Munch
     </div>
 </template>
 

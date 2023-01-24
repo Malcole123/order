@@ -25,19 +25,28 @@
                                                 Stores: {{ displayData.all_store_names }}
                                             </span>
                                         </div>
-                                        <div>
-                                            <span class="order-app-heading order-app-capitalize">
-                                                Order Total: {{ displayData.order_total_str }}
-                                            </span>
-                                        </div>
                                     </div>
                                     <div class="order-app-content-body">
+            
                                        <div class="full-width">
-                                            <ul>
-                                                <li v-for="(item,index) in displayData.all_item_names" :key="'order-item-'+ index">
-                                                    {{  item  }}
-                                                </li>
-                                            </ul>
+                                        <MazList
+                                        :noShadow="true"
+                                        style="padding:0px;"
+                                        >
+                                            <MazListItem v-for="(orderItem,index) in pageData.order.order_items"
+                                            :key="'cart-item-'+ index"
+                                            style="padding:0px;"
+                                            >
+                                                <CartCheckoutCardVue
+                                                :title="orderItem.item.product_details.name.short"
+                                                :quantity="orderItem.item.quantity"
+                                                :desc="orderItem.item.special_instruction"
+                                                :price="orderItem.item.price"
+                                                :addons="orderItem.item.addons"
+                                                :disableChange="true"                     
+                                                />
+                                            </MazListItem>
+                                        </MazList>
                                        </div>
                                        <div class="component-padding full-width">
                                             <div class="order-app-divider"></div>
@@ -177,7 +186,7 @@
 import MainWrapper from '~/components/Wrapper/MainWrapper.vue';
 import AppLogo from '~/components/Branding/AppLogo.vue';
 import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard.vue'
-
+import CartCheckoutCardVue from '~/components/Cart/CartCheckoutCard.vue';
 
 export default {
     name:"seeMyOrderPage",
@@ -190,6 +199,7 @@ export default {
         MainWrapper,
         AppLogo,
         SquareDisplayCard,
+        CartCheckoutCardVue,
     },
     data(){
         return {
@@ -268,7 +278,6 @@ export default {
                 }
                 
                 if(store_arr_ref.includes(oItem.item.product_details.store_details.store_reference) === false){
-                    console.log(oItem)
                     store_arr_ref.push(oItem.item.product_details.store_details.store_reference);
                     stores_name_arr.push(oItem.item.product_details.store_details.name.long);
                     redeem_location_arr.push({
@@ -293,7 +302,6 @@ export default {
             this.displayData.all_item_names = variant_name_arr;
             this.displayData.order_total_str = this.priceFormatter(item_currency, item_total);
             this.displayData.store_item_redeem = redeem_location_arr;
-            console.log(redeem_location_arr);
         },
         priceFormatter(currency,amount){
             let formatter = new Intl.NumberFormat('en-US', {style:'currency', currency:currency});
