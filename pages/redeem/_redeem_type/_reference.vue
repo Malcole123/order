@@ -442,13 +442,20 @@ export default {
         order_reference:"",
         order_item_ids:check_item_ids,
       }).then(data=>{
-        if(data.items_redeem_pending === true){
-          this.redeem.data.valid = true;
-          this.userDelayAction(()=>{
-            this.formatQRLoaderOverlay({loaderVisible:false});
-          }, 700)
-        }else{
-          this.userDelayAction(()=>{
+        let valid_redeem = [...data.order_items].filter((item,index)=>{
+            if(item.order_progress === 'user_fulfill_pending'
+            || item.order_progress === 'store_pending'
+            ){
+              return item 
+            }
+          });
+          console.log(valid_redeem)
+          if(valid_redeem.length === order_items.length){
+            this.userDelayAction(()=>{
+              this.formatQRLoaderOverlay({loaderVisible:false});
+            }, 700)
+          }else{
+            this.userDelayAction(()=>{
               this.formatQRLoaderOverlay({
               loaderVisible:true,
               showLoaderSpinner:false,
@@ -456,12 +463,7 @@ export default {
               loaderStatusMsg:"Success",
             })          
           }, 700)
-        }
-        this.redeem.data.redeem_check_arr.push({
-          id:order_id,
-          valid:data.items_redeem_pending,
-          recentScan:false
-        })
+          }
       }).catch(err=>{
         this.formatQRLoaderOverlay({loaderVisible:false})
         this.redeem.data.valid = false;
