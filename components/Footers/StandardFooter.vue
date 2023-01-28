@@ -11,7 +11,7 @@
                             <NuxtLink class="app-footer-navlink" :to="'/'">Search Restuarants</NuxtLink>
                         </div>
                         <div class="full-width">
-                            <NuxtLink class="app-footer-navlink" :to="'/'">About Munchies</NuxtLink>
+                            <NuxtLink class="app-footer-navlink" :to="'/'">About</NuxtLink>
                         </div>
                         <div class="full-width">
                             <NuxtLink class="app-footer-navlink" :to="'/'">Get Help</NuxtLink>
@@ -21,13 +21,6 @@
                         <div class="full-width">
                             <NuxtLink class="app-footer-navlink" :to="'/'">All Cities</NuxtLink>
                         </div>
-                        <div class="full-width">
-                            <NuxtLink class="app-footer-navlink" :to="'/'">All Countries</NuxtLink>
-                        </div>
-                        <div class="full-width">
-                            <NuxtLink class="app-footer-navlink" :to="'/'">Become a courier</NuxtLink>
-                        </div>
-
                     </div>
                 </div>
             </div>

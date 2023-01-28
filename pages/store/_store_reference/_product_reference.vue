@@ -56,6 +56,7 @@
                                     :pageRange="3"
                                     />
                                 </div>
+                                <div class="full-width"></div>
                             </div>
                             <div class="full-width app-mt-2">
                                 <span class="product-addon-heading">Special Instructions</span>

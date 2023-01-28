@@ -105,6 +105,12 @@ export default {
   },
   fetchOnServer:false,
   fetch(){
+    //Check queries
+    let query = this.$route.query;
+    const { type } = query;
+    if(type !== 'pending' || type === 'in_progress' || type === 'completed'){
+        this.filter = type;
+    }
     this.userDelayAction(()=>{
       this.state.pageLoading = false;
     }, 600)

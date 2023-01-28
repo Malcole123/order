@@ -220,6 +220,7 @@ export default {
           },
           async: true,
         },
+
       ],
     }
   },
@@ -381,36 +382,6 @@ export default {
     }
   },
   methods: {
-    async userCheckout() {
-      let ful_type = this.checkout_options.find((item, index) => {
-        if (item.selected === true) {
-          return item
-        }
-      })
-      this.state.checkoutProcessing = true
-      /*let dt = await this.$store.dispatch('user/userCartCheckout', {
-            delivery:{
-              street_name:this.user.delivery.street_name,
-              street_number:this.user.delivery.street_number,
-              town_name:this.user.delivery.town_name,
-              parish_name:this.user.delivery.parish_name,
-              instruction:this.user.delivery.delivery_instructions,
-              customer_name:this.user.delivery.customer_name,
-              customer_phone:this.user.delivery.customer_phone_formatted,
-            },
-            fulfill_type:ful_type.component_key,
-            checkout_total:{
-              currency:this.cart_total.currency,
-              amount:this.cart_total.amount,
-            }
-          });*/
-      this.userDelayAction({
-        callbck:() => {
-        this.state.checkoutProcessing = false
-        this.$router.push(`/cart/checkout/confirm`)
-      }, time:1200})
-      return
-    },
     showPayment(){
       if(this.paypalComponentShown === true){ return }
       this.paypalComponentShown = true;
@@ -783,12 +754,12 @@ export default {
             });
             this.userDelayAction({
               callbck:()=>{
-                this.$router.push('/orders')
+                this.$router.push('/orders?type=in_progress')
               },
               time:1200
             })
           },
-          time:400,
+          time:100,
         })
       }).catch(err=>{
         this.userDelayAction({

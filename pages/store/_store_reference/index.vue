@@ -23,17 +23,48 @@
             </div>
             <div class="store-view-body-wrapper" v-if="state.storeSearchOpen === false">
                 <div class="store-product-filters">
+                
                       <div class="store-product-filters-container">
-                          <div class="store-product-filter-item" 
-                          v-for="(cat,index) in pageData.sell_categories" :key="'sel-item-'+index"
-                          :data-sel-index="cat.name"
-                          >
-                              {{ cat.name }}
-                          </div>
+                        <MazCollapse color="black">
+                                        <div slot="header-text" style="width:100%">
+                                              Sell Categories
+                                        </div>    
+                                        <div class="store-product-filter-item" 
+                                        v-for="(cat,index) in pageData.sell_categories" :key="'sel-item-'+index"
+                                        :data-sel-index="cat.name"
+                                        @click="goToSection(cat.name)"
+                                        >
+                                            {{ cat.name }}
+                                        </div>                                                             
+                        </MazCollapse>
+                        <MazCollapse color="black">
+                                        <div slot="header-text" style="width:100%">
+                                              Store Locations
+                                        </div>    
+                                        <div class="store-product-filter-item" 
+                                        v-for="(cat,index) in pageData.sell_categories" :key="'sel-item-'+index"
+                                        :data-sel-index="cat.name"
+                                        >
+                                            {{ cat.name }}
+                                        </div>                                                             
+                        </MazCollapse>
+                        <MazCollapse color="black">
+                                        <div slot="header-text" style="width:100%">
+                                              Contact
+                                        </div>    
+                                        <div class="store-product-filter-item" 
+                                        v-for="(cat,index) in pageData.sell_categories" :key="'sel-item-'+index"
+                                        :data-sel-index="cat.name"
+                                        >
+                                            {{ cat.name }}
+                                        </div>                                                             
+                        </MazCollapse>
                       </div>
                 </div>
                 <div class="store-product-display">
-                  <div class="store-product-section-wrapper" v-for="(sect,i) in displayData.products" :key="'prodsection-'+ i">
+                  <div class="store-product-section-wrapper" v-for="(sect,i) in displayData.products" 
+                  :id="sect.section_id"
+                  :key="'prodsection-'+ i">
                       <h2 class="store-product-display-heading">{{ sect.section_details.name }}</h2>
                       <div class="store-product-display-section">
                         <SquareDisplayCard 
@@ -233,9 +264,13 @@ export default {
         //Detect store sell categories
         let sell_categories = this.pageData.sell_categories;
         let return_arr = [];
+        let empty_cats = [];
         sell_categories.forEach((item,index)=>{
             //Set category heading and results
+            let section_name_id = item.name.replaceAll(" ", "");
+            let section_id = `order-search-section-${section_name_id}`
             let section_obj = {
+                section_id:section_id,
                 section_details:item,
                 results:this.pageData.all_products.filter((prod,i)=>{
                     if(prod.sell_category.includes(item.name)){
@@ -243,7 +278,10 @@ export default {
                     }
                 })
             };
-            return_arr.push(section_obj)
+            return_arr.push(section_obj);
+            if(section_obj.results.length === 0 ){
+              empty_cats.push(index)
+            }
         })
         //Set results 
         this.displayData.products = return_arr.filter((item,index)=>{
@@ -251,6 +289,9 @@ export default {
                 return item ;
             }
         });
+        //Removes empty for sell categories
+        this.pageData.sell_categories = this.pageData.sell_categories.filter((item,index)=>{ if(empty_cats.includes(index) !== true){ return item }})
+        //Filter sell categories
     },
     userDelayAction(callback, time){
         try{
@@ -273,6 +314,18 @@ export default {
     },
     toggleStoreSearchView(state){
       this.state.storeSearchOpen = state;
+    },
+    goToSection(section_name){
+      let elIdName = section_name.replaceAll(" ", "");
+      let elId = `order-search-section-${elIdName}`;
+      let element = document.getElementById(elId);
+      console.log(element)
+      if(element !== null && element !== undefined){ return }
+      //let section name 
+      element.scrollIntoView({
+          behaviour:'smooth',
+          block:'end',
+      })
     }
 
     
@@ -341,6 +394,9 @@ export default {
   width:fit-content;
   position:relative;
   transition:0.3s ease-in-out;
+  padding-top:0.6em;
+  padding-bottom:0.6em;
+  padding-left:0.4em;
 }
 
 .store-product-filter-item::after{
@@ -434,8 +490,8 @@ export default {
   }
 
   .store-product-filters-container{
-    flex-direction:row;
-    flex-wrap:wrap;
+    display:grid;
+    grid-template-columns:1fr;
     width:100%;
   }
 
