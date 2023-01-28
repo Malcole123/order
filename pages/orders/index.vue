@@ -40,7 +40,8 @@
                             </div>
                         </div>
                         <div class="full-width order-result-wrapper" v-if="myOrders.orders.length > 0">
-                            <div class="full-width" v-for="(order,index) in myOrders.orders" :key="'filtered-order-'+index">
+                            <div class="full-width" 
+                            v-for="(order,index) in myOrders.orders" :key="'filtered-order-'+index">
                                 <OrderResultDisplayCard
                                     :order="order"
                                 >
@@ -60,7 +61,7 @@
                     </span>
                     <h1 class="order-app-large-heading">No Orders Found</h1>
                     <p>Your orders will appear here after checkout</p>
-                </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -107,10 +108,10 @@ export default {
   fetch(){
     //Check queries
     let query = this.$route.query;
-    const { type } = query;
-    if(type !== 'pending' || type === 'in_progress' || type === 'completed'){
-        this.filter = type;
-    }
+        const { type } = query;
+        if(type === 'pending' || type === 'in_progress' || type === 'completed'){
+            this.filter = type;
+        }
     this.userDelayAction(()=>{
       this.state.pageLoading = false;
     }, 600)
