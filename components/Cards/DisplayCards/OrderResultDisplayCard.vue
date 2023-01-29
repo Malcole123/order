@@ -97,6 +97,8 @@ export default {
                 if(variant_selected !== undefined){
                     if(variant_selected.image !== null){
                         image_arr.push(variant_selected.image.url);
+                    }else{
+                        
                     }
                     variant_arr_ref.push(variant_selected.variant_reference);
                     variant_name_arr.push(`${oItem.item.quantity} x ${variant_selected.name}`)

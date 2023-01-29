@@ -308,6 +308,7 @@ auth:false,
                 quantity:item.quantity,
                 description:"",
                 price:item.price,
+                name:item.name
             }
         })
 

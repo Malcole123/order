@@ -41,37 +41,16 @@
                   v-for="(oItem, oIndex) in oRest.order_items"
                   :key="`order-item-${oIndex}`"
                 >
-                  <RestaurantDisplayCard
+                  <RedeemOrderItemDisplayCard
                     :image="oItem.productImage"
-                    :reviews="[]"
-                    :numLocations="2"
+                    :title="oItem.productName"
+                    :quantity="oItem.item.quantity"
+                    :priceStr="oItem.priceStr"
+                    :description="oItem.description"
+                    :order_addons="oItem.item.addons"
+                    :included_items="oItem.includedItems"
                   >
-                    <template v-slot:card_content>
-                      <div
-                        class="
-                          full-width
-                          app-flex app-flex-column app-sm-spacing
-                        "
-                      >
-                        <div class="full-width app-flex app-flex-between-row">
-                          <h6 class="restaurant-display-item">
-                            {{
-                              `${oItem.item.quantity} x ${oItem.productName}`
-                            }}
-                          </h6>
-                          <h6 class="restaurant-display-item">
-                            {{ `${oItem.priceStr}` }}
-                          </h6>
-                        </div>
-                        <div class="full-width">
-                          <p>
-                            {{ oItem.item.description }}
-                          </p>
-                        </div>
-                        <div class="full-width"></div>
-                      </div>
-                    </template>
-                  </RestaurantDisplayCard>
+                  </RedeemOrderItemDisplayCard>
                 </div>
               </div>
             </div>
@@ -100,7 +79,6 @@
             <p>
               Scan the qr code or provide the code above to redeem your order
             </p>
-            <MazBtn @click="testScan">Click</MazBtn>
           </div>
 
              <!--Loader--> 
@@ -144,9 +122,9 @@ import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard
 import StandardFooter from '~/components/Footers/StandardFooter.vue'
 import BareNavbarVue from '~/components/Navbars/BareNavbar.vue'
 
-import RestaurantDisplayCard from '~/components/Cards/DisplayCards/RestaurantDisplayCard.vue'
+import RestaurantDisplayCard from '~/components/Cards/DisplayCards/RestaurantDisplayCard.vue';
+import RedeemOrderItemDisplayCard from '~/components/Cards/DisplayCards/RedeemOrderItemDisplayCard.vue';
 export default {
-  auth: false,
   name: 'redeemByTypeByReference',
   head() {
     return {
@@ -248,6 +226,7 @@ export default {
     StandardFooter,
     BareNavbarVue,
     RestaurantDisplayCard,
+    RedeemOrderItemDisplayCard,
   },
   methods: {
     userDelayAction(callback, time) {
@@ -336,12 +315,18 @@ export default {
                       ? setItem.item.product_details.image.url
                       : ''
                 }
-                setItem.includedItems = variant.included_items
+                let addon_total = setItem.item.addons.length > 1 ?
+                setItem.item.addons.map(a_item=>{ return a_item.quantity * a_item.price.amount}).reduce((prev,next)=>{
+                  return prev + next 
+                })
+                : 0
+                setItem.includedItems = variant.included_items;
                 setItem.description = variant.description
                 setItem.priceStr = this.priceFormatter(
                   variant.currency,
-                  variant.amount * setItem.item.quantity
+                  (variant.amount * setItem.item.quantity) + addon_total
                 )
+          
                 return setItem
               }
             })
@@ -363,7 +348,8 @@ export default {
             return fItem
           }
         })
-      this.uiFormatted.formattedArr = clean_arr
+      this.uiFormatted.formattedArr = clean_arr;
+      console.log(clean_arr)
     },
     createQrLink({ path }) {
       let base_ = process.env.NUXT_ENV_RIDER_STORE_BROWSER_BASE_URL
@@ -382,7 +368,22 @@ export default {
         loaderDescription:"Checking your items for this restaurant",
         loaderStatusMsg:"Boop beep boop",
       })
-      await this.verifyOrderItemsFulfill(order_items);
+      //Checks all order items to see if items can still be redeemed for restaurant
+      let allow_redeem = this.checkOrderItemStatus(order_items);
+      if(allow_redeem){
+        this.userDelayAction(()=>{
+          this.formatQRLoaderOverlay({loaderVisible:false});
+        }, 700)
+      }else{
+        this.userDelayAction(()=>{
+          this.formatQRLoaderOverlay({
+                loaderVisible:true,
+                showLoaderSpinner:false,
+                loaderDescription:"All items in this order belonging to this restaurant have been redeemed.",
+                loaderStatusMsg:"Success",
+              })          
+          }, 700)
+      }
       this.createQrLink({
         path: `store/orders/redeem/${order_reference}/${order_redeem_reference}`,
       })
@@ -435,6 +436,7 @@ export default {
         }
     },
     async verifyOrderItemsFulfill(order_items){
+      //INACTIVE
       //Format for loading 
       let order_id = order_items[0].for_order;
       this.redeem.fetching = true;
@@ -456,18 +458,9 @@ export default {
             }
           });
           if(valid_redeem.length === order_items.length){
-            this.userDelayAction(()=>{
-              this.formatQRLoaderOverlay({loaderVisible:false});
-            }, 700)
+       
           }else{
-            this.userDelayAction(()=>{
-              this.formatQRLoaderOverlay({
-              loaderVisible:true,
-              showLoaderSpinner:false,
-              loaderDescription:"All items in this order belonging to this restaurant have been redeemed.",
-              loaderStatusMsg:"Success",
-            })          
-            }, 700)
+ 
           }
       }).catch(err=>{
         this.formatQRLoaderOverlay({loaderVisible:false})
@@ -477,6 +470,20 @@ export default {
           type:'error'
         })
       })
+    },
+    checkOrderItemStatus(order_items){
+      //Checks fetched order items to see if items are still pending
+      let can_be_redeemed = [...order_items].filter((item,index)=>{
+        if(item.order_progress === 'store_pending' || item.order_progress === 'store_complete'
+        || item.order_progress === 'user_fulfill_pending'){
+          return item ;
+        }
+      });
+      if(can_be_redeemed.length === order_items.length){
+        return true ;
+      }else{
+        return false;
+      }
     },
     restrictFulfilIdentify(id){
       let foundItem = this.redeem.data.redeem_check_arr.find((item,index)=>{
@@ -672,6 +679,10 @@ export default {
 .restaurant-display-item {
   font-size: var(--app-text-base);
   font-weight: 600;
+}
+
+.card-text-sml{
+  font-size:var(--app-text-xs);
 }
 
 .restaurant-display-description {

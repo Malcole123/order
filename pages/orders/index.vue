@@ -77,10 +77,9 @@ import MainWrapper from '~/components/Wrapper/MainWrapper.vue';
 import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard.vue';
 import RestaurantDisplayCard from '~/components/Cards/DisplayCards/RestaurantDisplayCard.vue';
 import OrderResultDisplayCard from '~/components/Cards/DisplayCards/OrderResultDisplayCard.vue'
-
+import RedeemOrderItemDisplayCard from '~/components/Cards/DisplayCards/RedeemOrderItemDisplayCard.vue';
 
 export default {
-  auth:false,
   name: 'your_orders_page',
   head(){
     return {
@@ -125,6 +124,7 @@ export default {
     SquareDisplayCard,
     RestaurantDisplayCard,
     OrderResultDisplayCard,
+    RedeemOrderItemDisplayCard,
   },
   methods:{
     userDelayAction(callback, time){
