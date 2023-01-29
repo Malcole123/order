@@ -51,7 +51,7 @@
                                     <template v-slot:action_btn_right_top>
                                         <MazBtn color="black" size="mini" v-if="order.status === 'in_progress'" @click="$router.push(`/redeem/${order.fulfill_type}/${order.order_reference}`)">Redeem Now</MazBtn>
                                         <MazBtn color="black" size="mini" v-else-if="order.status === 'pending'" @click="$router.push(`/cart/checkout/confirm/${order.transaction_details.transaction_reference}`)">Confirm Order</MazBtn>
-                                        <MazBtn color="black" size="mini" v-else-if="order.status === 'complete'">Order Complete</MazBtn>
+                                        <MazBtn color="black" size="white" disabled v-else></MazBtn>
                                     </template>
                                 </OrderResultDisplayCard>
                             </div>

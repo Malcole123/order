@@ -22,6 +22,12 @@
                             {{ redeemDescription }}
                         </p>
                     </div>
+                    <div class="full-width" v-if="redeemOrderInstructions.length > 0">
+                        <small><b>Special Instructions</b></small>
+                        <p class="redeem-content-text">
+                            {{ redeemOrderInstructions }}
+                        </p>
+                    </div>
                    
                 </div>
                 <div class="full-width" v-if="redeemAddons.length > 0">
@@ -70,8 +76,8 @@ props:[
     'priceStr',
     'description',
     'order_addons',
-    'included_items'
-
+    'included_items',
+    'special_instruction'
 ],
 computed:{
     cardImage(){
@@ -97,6 +103,10 @@ computed:{
     redeemIncluded(){
         let included = this.included_items || [];
         return included
+    },
+    redeemOrderInstructions(){
+        let instruction = this.special_instruction || "";
+        return instruction
     }
 }
 }

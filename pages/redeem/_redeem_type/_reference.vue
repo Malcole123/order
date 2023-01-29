@@ -49,6 +49,7 @@
                     :description="oItem.description"
                     :order_addons="oItem.item.addons"
                     :included_items="oItem.includedItems"
+                    :special_instruction="oItem.item.special_instruction"
                   >
                   </RedeemOrderItemDisplayCard>
                 </div>
