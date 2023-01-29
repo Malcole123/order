@@ -423,7 +423,8 @@ export default {
 
           })
 
-          this.socket.instance.on('order_complete', ({order_reference, redeem_reference})=>{
+          this.socket.instance.on('order_complete', (data)=>{
+            const {order_reference, redeem_reference} = data;
             console.log({order_reference,redeem_reference})
             if((order_reference === order_reference_ && redeem_reference === order_redeem_reference_)){
               this.successScanHandle();
