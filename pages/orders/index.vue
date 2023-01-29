@@ -137,6 +137,7 @@ export default {
   },
   computed:{
     myOrders(){
+        //Returns getter function that filters by type
         let orders = this.$store.getters['user/seeMyOrders'];
         let called_ = orders(this.filter)
         return {
