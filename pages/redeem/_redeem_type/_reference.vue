@@ -350,7 +350,6 @@ export default {
           }
         })
       this.uiFormatted.formattedArr = clean_arr;
-      console.log(clean_arr)
     },
     createQrLink({ path }) {
       let base_ = process.env.NUXT_ENV_RIDER_STORE_BROWSER_BASE_URL
@@ -413,7 +412,6 @@ export default {
           })
 
           this.socket.instance.on('order_redeem_pending' , ({order_reference, redeem_reference})=>{
-            console.log({order_reference,redeem_reference})
             if((order_reference === order_reference_ && redeem_reference === order_redeem_reference_)){
               this.formatQRLoaderOverlay({
                   loaderVisible:true,
@@ -433,7 +431,11 @@ export default {
             }
           })
         }catch(err){
-          console.log(err)
+          console.log(err);
+          this.$toast.open({
+            message:"",
+            type:'error',
+          })
         }
     },
     async verifyOrderItemsFulfill(order_items){
