@@ -220,7 +220,6 @@ export default {
           },
           async: true,
         },
-
       ],
     }
   },

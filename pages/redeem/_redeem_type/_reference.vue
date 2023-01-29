@@ -100,6 +100,7 @@
             <p>
               Scan the qr code or provide the code above to redeem your order
             </p>
+            <MazBtn @click="testScan">Click</MazBtn>
           </div>
 
              <!--Loader--> 
@@ -410,6 +411,7 @@ export default {
           })
 
           this.socket.instance.on('order_redeem_pending' , ({order_reference, redeem_reference})=>{
+            console.log({order_reference,redeem_reference})
             if((order_reference === order_reference_ && redeem_reference === order_redeem_reference_)){
               this.formatQRLoaderOverlay({
                   loaderVisible:true,
@@ -421,8 +423,11 @@ export default {
 
           })
 
-          this.socket.instance.on('order_complete', (data)=>{
-            this.successScanHandle()
+          this.socket.instance.on('order_complete', ({order_reference, redeem_reference})=>{
+            console.log({order_reference,redeem_reference})
+            if((order_reference === order_reference_ && redeem_reference === order_redeem_reference_)){
+              this.successScanHandle();
+            }
           })
         }catch(err){
           console.log(err)
@@ -449,7 +454,6 @@ export default {
               return item 
             }
           });
-          console.log(valid_redeem)
           if(valid_redeem.length === order_items.length){
             this.userDelayAction(()=>{
               this.formatQRLoaderOverlay({loaderVisible:false});
@@ -462,7 +466,7 @@ export default {
               loaderDescription:"All items in this order belonging to this restaurant have been redeemed.",
               loaderStatusMsg:"Success",
             })          
-          }, 700)
+            }, 700)
           }
       }).catch(err=>{
         this.formatQRLoaderOverlay({loaderVisible:false})
@@ -489,9 +493,10 @@ export default {
 
     //Test start
     testScan(){
-      this.qrComponent.loader.visible = true;
+      //this.qrComponent.loader.visible = true;
       this.socket.instance.emit('get_redeem_response', {
-        test:true,
+        order_reference:this.pageData.order.order_reference,
+        redeem_reference:this.pageData.order.redeem_reference,
       })
     },
     successScanHandle(){
