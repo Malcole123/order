@@ -102,6 +102,9 @@ import SlideDrawerVue from '../Modals/SlideDrawer.vue';
 import CartCheckoutCardVue from '../Cart/CartCheckoutCard.vue';
 
 export default {
+    emits:[
+        'deviceChange'
+    ],
     components:{
         AppLogo,
         SlideDrawerVue,
@@ -157,10 +160,17 @@ export default {
                     }
                 ]
             },
+            device:{
+                location:{
+                    lat:0,
+                    lng:0,
+                }
+            }
             
         }
     },
     async mounted(){
+        this.identifyMountLocation();
         let res = await this.fetchUserCart();
     },
     watch:{
@@ -249,6 +259,16 @@ export default {
             this.userDelayAction(()=>{
                 this.$auth.logout();
             },200)
+        },
+        identifyMountLocation(){
+            //Identifies device details for entire application 
+            let location = navigator.geolocation.getCurrentPosition((pos)=>{
+                const { latitude  , longitude } = pos.coords;
+                //Set location 
+                this.device.location.lat = latitude;
+                this.device.location.lng = longitude;
+                this.$emit('deviceChange', this.device)
+            });    
         }
     },
     computed:{

@@ -431,9 +431,9 @@ export default {
             }
           })
         }catch(err){
-          console.log(err);
+          //console.log(err);
           this.$toast.open({
-            message:"",
+            message:"Somethign went wrong",
             type:'error',
           })
         }

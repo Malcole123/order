@@ -47,13 +47,15 @@
                             </div>
                             <div class="full-width quantity-sel-section">
                                 <span class="product-addon-heading">Quantity</span>
-                                <div class="full-width app-mt-1" style="max-width:100%;overflow:hidden;">
-                                    <MazPagination
-                                    style="justify-content:flex-start;width:100%;"
-                                    :dark="true"
+                                <div class="full-width app-mt-1" style="max-width:100%">
+                                    <MazSelect
+                                    :color="'black'" 
+                                    :options="menuSelection.selection_options.quantity" 
+                                    :listWidth="'100%'" 
+                                    :placeholder="'Quantity'"
                                     v-model="userForm.quantity"
-                                    :page-count="32"
-                                    :pageRange="3"
+                                    :multiple="false"
+                                    :config="menuSelection.selection_options.quantConfig"
                                     />
                                 </div>
                                 <div class="full-width"></div>
@@ -96,7 +98,7 @@
                                                                     {{ opt.name }}
                                                                 </span>
                                                                 <span class="product-addon-option-sub-heading">
-                                                                    {{ priceFormatter(opt.price.amount,opt.price.currency) }}
+                                                                    <strong>{{ priceFormatter(opt.price.amount,opt.price.currency) }}</strong>
                                                                 </span>
                                                             </div>
                                                             <div>
@@ -105,11 +107,10 @@
                                                                 </div>
                                                                 <div v-else style="width:120px;">
                                                                     <MazInput
-                                                                    placeholder="Select Quantity"
+                                                                    placeholder=""
                                                                     type="number"
                                                                     :min="0"
                                                                     color="black"
-                                                                    :disabled="true"
                                                                     :id="`item-quantity-input-${i}`"
                                                                     v-model="opt.quantity"
                                                                     style="background:#fff;color:#000;text-align:center;"
@@ -269,7 +270,12 @@ auth:false,
                 { label: '6', value: 6 },
                 { label: '7', value: 7 },
                 { label: '8', value: 8 },
-                ]
+                ],
+                quantConfig:{
+                "labelKey":"label",
+                "valueKey":"value",
+                "searchKey":"label"
+                },
             }
         },
         displayData:{
@@ -345,11 +351,23 @@ auth:false,
     dataTransform(){
         let data = this.pageData;
         if(data === undefined){ return }
-        console.log(data)
         const { variants } = data;
         if(variants === undefined) { return }
         //this.menuSelection.selection_options.selections = [{'name':'none','variant_reference':null}]
         this.menuSelection.selection_options.selections.push(...variants);
+    },
+    formatQuantitySelection(){
+        //Formats quantity selection to display order item price and unti
+        let max = 40;
+        let quantity_arr = [];
+        for(let i = 1 ; i <= max; i ++){
+            let obj = {
+                label:`${i} x ${this.displayData.priceStr}`,
+                value:i,
+            }
+            quantity_arr.push(obj)
+        }
+        this.menuSelection.selection_options.quantity = quantity_arr;
     },
     getDataFromVariant(){
         let variants = this.pageData.variants;
@@ -382,6 +400,8 @@ auth:false,
         this.displayData.imageUrl = imageUrl.length === 0 && this.displayData.imageUrl.length > 0 ? this.displayData.imageUrl : imageUrl;
         this.displayData.priceStr = priceStr;
         this.displayData.included_items = included_items;
+        //Format Quantity Selection every change
+        this.formatQuantitySelection()
     },
     setAddOnData(){
         //Sets form data from page data to be used for checkout

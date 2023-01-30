@@ -2,7 +2,8 @@
     <MainWrapper>
       <template v-slot:navbar>
           <ApplicationNavbarVue
-          :pageLoading="state.pageLoading"
+          :pageLoading="state.navLoading"
+          @deviceChange="setLocationDetails"
           />
       </template>
       <template v-slot:body>
@@ -37,26 +38,22 @@
                                             {{ cat.name }}
                                         </div>                                                             
                         </MazCollapse>
+                     
                         <MazCollapse color="black">
                                         <div slot="header-text" style="width:100%">
-                                              Store Locations
+                                          Store Locations
                                         </div>    
-                                        <div class="store-product-filter-item" 
-                                        v-for="(cat,index) in pageData.sell_categories" :key="'sel-item-'+index"
-                                        :data-sel-index="cat.name"
+                                        <div class="full-width component-padding" 
                                         >
-                                            {{ cat.name }}
-                                        </div>                                                             
-                        </MazCollapse>
-                        <MazCollapse color="black">
-                                        <div slot="header-text" style="width:100%">
-                                              Contact
-                                        </div>    
-                                        <div class="store-product-filter-item" 
-                                        v-for="(cat,index) in pageData.sell_categories" :key="'sel-item-'+index"
-                                        :data-sel-index="cat.name"
-                                        >
-                                            {{ cat.name }}
+                                           <RestaurantLocationCardVue
+                                           v-for="(location,l_index) in pageData.measured_locations"
+                                           :key="`measured-location-${l_index}`"
+                                            :distance="location.distance"
+                                            :title="location.name"
+                                            :store_location="location.exact_location.data"
+                                            :user_location="user.location"
+                                           />
+                                     
                                         </div>                                                             
                         </MazCollapse>
                       </div>
@@ -81,7 +78,7 @@
                 </div>
             </div>
         </div>
-        <div :class="storeSearchComponent.parent_class">
+        <div :class="storeSearchComponent.parent_class" v-if="successLoad === true">
           <div class="full-width app-flex app-container-fluid" style="justify-content:flex-end;">
             <MazBtn color="black" size="mini" @click="toggleStoreSearchView(false)">Close</MazBtn>
           </div>
@@ -131,6 +128,10 @@
             </div>
           </template>
         </SlideDrawerVue>
+        <SvgLoaderVue
+          :showLoader="state.showLoader"
+          @loaderShown="pageLoadSequence"
+        />
       </template>
       <template v-slot:footer>
         <StandardFooter/>
@@ -143,8 +144,11 @@
 import ApplicationNavbarVue from '~/components/Navbars/ApplicationNavbar.vue';
 import MainWrapper from '~/components/Wrapper/MainWrapper.vue';
 import SquareDisplayCard from '~/components/Cards/DisplayCards/SquareDisplayCard.vue';
+import RestaurantLocationCardVue from '~/components/Cards/DisplayCards/RestaurantLocationCard.vue';
+
 import StandardFooter from '~/components/Footers/StandardFooter.vue';
 import SlideDrawerVue from '~/components/Modals/SlideDrawer.vue';
+import SvgLoaderVue from '~/components/PageLoaders/SvgLoader.vue'
 import GroceryListSearchVue from '~/components/ActionComponents/GroceryListSearch.vue';
 
 export default {
@@ -159,50 +163,24 @@ export default {
     MainWrapper,
     ApplicationNavbarVue,
     SquareDisplayCard,
+    RestaurantLocationCardVue,
     StandardFooter,
     SlideDrawerVue,
     GroceryListSearchVue,
+    SvgLoaderVue,
   },
   async asyncData({isDev, $axios ,route, store, env, params, query, req, res, redirect, error}) {
-        let url = process.env.NUXT_ENV_STORE_IDENTIFY_URL;
-        let ref = params.store_reference;
-        if(ref === undefined){
-            return {
-                successLoad:false,
-            }
-        }
-        let xReq = await $axios.$get(url, {
-            progress:false,
-            params:{
-                location:{
-                lat:17.9988,
-                lng:-77.12222,
-            },
-            reference:ref,
-            }
-        }).then(data=>{
-            return {
-                successLoad:true,
-                pageData:data,
-                storeReference:ref,
-            }
-        }).catch(err=>{
-            return {
-                successLoad:false
-            }
-        });
-        return xReq;
+     
   },
   fetchOnServer:false,
-  fetch(){
-    this.formatPageResults();
-    this.userDelayAction(()=>{
-        this.state.pageLoading = false;
-    }, 900)
+  async fetch(){
+
   },
   data(){
     return {
         state:{
+            navLoading:false,
+            showLoader:true,
             pageLoading:true,
             drawLoading:false,
             drawOpen:false,
@@ -214,7 +192,16 @@ export default {
         displayData:{
             products:[], //displays formatted results on page load
             search_results:[],
-        }
+        },
+        user:{
+          location:{
+            set:false,
+            lat:0,
+            lng:0,
+          }
+        },
+        successLoad:false,
+        pageData:{}
     }
   },
   computed:{
@@ -252,6 +239,24 @@ export default {
     },
   },
   methods:{
+    async pageLoadSequence(){
+      this.userDelayAction(async ()=>{
+        let set_data = await this.fetchPageResults();
+          if(set_data.ok){
+            this.successLoad = true;
+            this.pageData = set_data.data;
+            this.formatPageResults();
+            this.state.pageLoading = false;
+            this.userDelayAction(()=>{
+                this.state.showLoader = false;
+            }, 900)
+          }else{
+
+          }
+
+
+      },300)        
+    },
     scrollObserve(index){
         let class_ = "store-product-filter-active";
         if(index === this.scrollSpy.id){
@@ -259,6 +264,33 @@ export default {
         }else{
             return "";
         }
+    },
+    async fetchPageResults(){
+      let url = process.env.NUXT_ENV_STORE_IDENTIFY_URL;
+        let ref = this.$route.params.store_reference;
+      if(ref === undefined){ return { ok:false }}
+       let dt = await this.$axios.$get(url, {
+            progress:false,
+            params:{
+                location:{
+                lat:this.user.location.lat,
+                lng:this.user.location.lng,
+            },
+            reference:ref,
+            }
+        }).then(data=>{
+          console.log(data)
+            return { 
+              ok:true,
+              data,
+            }
+        }).catch(err=>{
+          console.log(err)
+            return {
+              ok:false,
+            }
+        });
+        return dt;
     },
     formatPageResults(){
         //Detect store sell categories
@@ -289,6 +321,7 @@ export default {
                 return item ;
             }
         });
+        //console.log(this.pageData)
         //Removes empty for sell categories
         this.pageData.sell_categories = this.pageData.sell_categories.filter((item,index)=>{ if(empty_cats.includes(index) !== true){ return item }})
         //Filter sell categories
@@ -326,6 +359,17 @@ export default {
           behaviour:'smooth',
           block:'end',
       })
+    },
+    setLocationDetails(data){
+        try{
+          this.user.location.lat = data.location.lat;
+          this.user.location.lng = data.location.lng;
+          this.user.location.set = true;
+          console.log(this.user)
+          return true
+        }catch(err){
+          return false
+        }
     }
 
     
