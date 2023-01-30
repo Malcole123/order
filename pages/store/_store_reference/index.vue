@@ -26,7 +26,8 @@
                 <div class="store-product-filters">
                 
                       <div class="store-product-filters-container">
-                        <MazCollapse color="black">
+                        <div class="full-width store-filter-mobile-hidden">
+                          <MazCollapse color="black">
                                         <div slot="header-text" style="width:100%">
                                               Sell Categories
                                         </div>    
@@ -37,8 +38,9 @@
                                         >
                                             {{ cat.name }}
                                         </div>                                                             
-                        </MazCollapse>
+                          </MazCollapse>
                      
+                        </div>
                         <MazCollapse color="black">
                                         <div slot="header-text" style="width:100%">
                                           Store Locations
@@ -537,6 +539,17 @@ export default {
     display:grid;
     grid-template-columns:1fr;
     width:100%;
+    position:fixed;
+    top:auto;
+    position:fixed;
+    bottom:0%;
+    left:0%;
+    right:0%;
+    z-index:4;
+  }
+
+  .store-filter-mobile-hidden{
+    display:none;
   }
 
   .store-product-display-section{
