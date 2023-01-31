@@ -73,7 +73,9 @@
                         :title="prod.name.short"
                         :desc="prod.description"
                         :reviews="[]"
-                        @click="$router.push(`/store/${storeReference}/${prod.product_uuid}`)"/>
+                        @click="$router.push(`/store/${storeReference}/${prod.product_uuid}`)"
+                          
+                      />
                       </div>
                   </div>
             

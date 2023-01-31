@@ -10,7 +10,7 @@
             <div class="home-results-wrapper app-container-fluid">
               <div class="full-width" v-for="(homeSect, index) in pageData.homeResults" :key="'home-sect-item-'+ index">
                   <div class="home-results-header">
-                      <h1 class="home-main-heading">{{ homeSect.label }}</h1>
+                      <h2 class="home-main-heading">{{ homeSect.label }}</h2>
                   </div>
                   <div class="home-results-display">
                     <div 
@@ -18,10 +18,13 @@
                     :key="`${index}-store-item-result-${i}`">
                         <RestaurantDisplayCard                              
                           :title="store.name.short"
+                          :description="store.promotional.description.short"
                           :image="store.promotional.image.storeLogo"
                           :numLocations="store.locations.length"
                           :reviews="store.reviews"
                           @click="$router.push(`/store/${store.store_reference}`)"
+                          @favouriteToggled="setUserFavourite"
+                          @guestClick="$router.push('/auth/login')"
                         />
                     </div>
                     
@@ -163,7 +166,10 @@ export default {
             maximumAge: 0
           })
           return location
-      },
+    },
+    async setUserFavourite(data){
+
+    }
   }
 }
 </script>
@@ -205,6 +211,7 @@ export default {
   font-size:var(--app-text-xl);
   font-weight:600;
   margin:0px;
+  text-transform:capitalize;
 }
 
 .home-results-display{
@@ -225,7 +232,7 @@ export default {
   }
 
   .home-results-display{
-    grid-template-columns:repeat(2,1fr)
+    grid-template-columns:1fr;
   }
 }
 
