@@ -126,8 +126,11 @@
             <!--Placeholder to maintain spacing for component-->
             </span>
             <div class="app-navlinks" v-if="$auth.loggedIn === false">
-                <MazBtn color="black" size="mini" @click="$router.push('/auth/login')">Log In</MazBtn>
-                <MazBtn color="primary" size="mini"  @click="$router.push('/auth/register')">Sign Up</MazBtn>
+                <div class="app-conversion-banner">
+                    <span>
+                        <span class="app-conversion-cta">Lorem Ipsum Veratis !</span>
+                    </span>
+                </div>
             </div>
             <div class="app-navlinks" v-else>
                 <span class="app-navlink-item app-navlink-desktop-hidden" @click="openSearch">
@@ -701,7 +704,28 @@ export default {
         display:flex;
         width:22em;
         justify-content:flex-end;
-        
+        position:relative;   
+    }
+
+    .app-conversion-banner{
+        width:100%;
+        height:100%;
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        background:#F7EF81;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:0.4em 0.6em;
+    }
+
+    .app-conversion-cta{
+        font-size:var(--app-text-lg);
+        font-weight:600;
+        color:var(--app-prim-black);
     }
 
     .app-navlink-item{
