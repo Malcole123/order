@@ -7,6 +7,16 @@ const state = (()=>{
                 alias:"",
             },
             email:"",
+            favourites:{
+                store_favourites:{
+                    dbSynced:false,
+                    items:[],
+                },
+                product_favourites:{
+                    dbSynced:false,
+                    items:[],
+                }
+            }
         },
         cart:{
             lastUpdated:0,
@@ -68,6 +78,13 @@ const getters = {
             }
         }
         return filter_function;
+    },
+    getStoreFavourites(state){
+        let favourites = state.user.favourites.store_favourites;
+        return {
+            dbSynced:favourites.dbSynced,
+            favourites:favourites.items,
+        };
     }
 
 }
@@ -102,6 +119,11 @@ const mutations = {
     },
     setMyOrderItems(state, { orders }){
         state.orders = orders;
+        return true;
+    },
+    setFavouriteFromDBStore(state , { store_favourites }){
+        state.user.favourites.store_favourites.dbSynced = true;
+        state.user.favourites.store_favourites.items = store_favourites;
         return true;
     }
  
@@ -282,6 +304,61 @@ const actions = {
         });
         return res_;
     },
+    async userFavouritesToggleStore(state, {store_id}){
+        let favs = state.getters['getStoreFavourites'];
+        let current_favourites = [];
+        if(favs.dbSynced === false){
+            current_favourites = this.$auth.user.favourite_stores;
+        }else{
+            current_favourites = favs.favourites;
+        }
+        let check_fav = [...current_favourites];
+        let use_fav = []
+        if(check_fav.includes(store_id)){
+            use_fav  = [...check_fav].filter((item,index)=>{
+                if(item === store_id){
+                    return item ;
+                }
+            })
+        }else{
+            use_fav.push(store_id);
+        }
+        let url = process.env.NUXT_ENV_USER_FAVOURITE_TOGGLE_STORE;
+        let dt = await this.$axios.$post(url, {
+            store_favourites:use_fav,
+        }).then(data=>{
+            state.commit('setFavouriteFromDBStore', {
+                store_favourites:data.favourite_stores,
+            })
+            return {
+                ok:true,
+                data
+            }
+        }).catch(err=>{
+            return {
+                ok:false,
+            }
+        });
+        return dt;
+    },
+    async updateUserDetails(state, { name , email , country, phone_number}){
+        let url = process.env.NUXT_ENV_USER_PROFILE_DETAILS_UPDATE;
+        let dt = await this.$axios.$post(url, {
+            name,
+            email,
+            country,
+            phone_number,
+        }).then(data=>{
+            return {
+                ok:true
+            }
+        }).catch(err=>{
+            return {
+                ok:false
+            }
+        });
+        return dt;
+    }
 }
 
 

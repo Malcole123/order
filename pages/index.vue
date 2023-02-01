@@ -10,13 +10,19 @@
             <div class="home-results-wrapper app-container-fluid">
               <div class="full-width" v-for="(homeSect, index) in pageData.homeResults" :key="'home-sect-item-'+ index">
                   <div class="home-results-header">
-                      <h2 class="home-main-heading">{{ homeSect.label }}</h2>
+                      <div class="home-main-heading-placeholder" v-if="state.componentLoading">
+                        <div class="app-skeleton"></div>
+                      </div>
+                      <h2 class="home-main-heading"
+                      v-else
+                      >{{ homeSect.label }}</h2>
                   </div>
                   <div class="home-results-display">
                     <div 
                     class="full-width" v-for="(store, i) in homeSect.results" 
                     :key="`${index}-store-item-result-${i}`">
-                        <RestaurantDisplayCard                              
+                        <RestaurantDisplayCard 
+                          :store_id="store.id"                             
                           :title="store.name.short"
                           :description="store.promotional.description.short"
                           :image="store.promotional.image.storeLogo"
@@ -25,6 +31,7 @@
                           @click="$router.push(`/store/${store.store_reference}`)"
                           @favouriteToggled="setUserFavourite"
                           @guestClick="$router.push('/auth/login')"
+                          :cardLoading="state.componentLoading"
                         />
                     </div>
                     
@@ -68,6 +75,7 @@ export default {
     return {
       state:{
         pageLoading:true,
+        componentLoading:true,
       },
       successLoad:false,
       pageData:{
@@ -80,6 +88,9 @@ export default {
     await this.formatHome();
     this.userDelayAction(()=>{
       this.state.pageLoading = false;
+      this.userDelayAction(()=>{
+        this.state.componentLoading = false;
+      }, 800)
     }, 600)
   },
   components:{
@@ -168,7 +179,20 @@ export default {
           return location
     },
     async setUserFavourite(data){
-
+      const { restaurant_id, setState } = data;
+      let dt = await this.$store.dispatch('user/userFavouritesToggleStore', {
+        store_id:restaurant_id,
+      })
+      console.log(dt)
+      if(dt.ok){
+          let message = setState === true ? 'New favourite added' : 'Store removed';
+          this.$toast.open({
+            message,
+            type:'dark',
+          })
+      }else{
+        
+      }
     }
   }
 }
@@ -212,6 +236,11 @@ export default {
   font-weight:600;
   margin:0px;
   text-transform:capitalize;
+}
+
+.home-main-heading-placeholder{
+  height:var(--app-text-xl);
+  width:25%;
 }
 
 .home-results-display{

@@ -6,7 +6,14 @@
             <div class="card-content component-padding">
                <slot name="card_body_content">
                     <div class="card-content-header">
-                        <span class="card-title">{{ title }}</span>
+                        <span class="card-title">
+                            <span class="full-width">
+                                <a-skeleton />
+                            </span>
+                            <span>
+                                {{ title }}
+                            </span>
+                        </span>
                         <span class="order-rating" v-if="(reviews !== null && reviews !== undefined) && reviews.length > 0">
                         <span class="material-symbols-outlined">
                             star_outline
@@ -86,6 +93,11 @@ export default {
     .card-title{
         font-size:var(--app-text-base);
         font-weight:600;
+        display: -webkit-box;
+        -webkit-line-clamp:1;
+        -webkit-box-orient: vertical; 
+        width: 100%;
+        overflow: hidden;
     }
 
     .card-description-text{

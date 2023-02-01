@@ -22,7 +22,7 @@
                 Create Shopping List
                 </MazBtn>
             </div>
-            <div class="store-view-body-wrapper" v-if="state.storeSearchOpen === false">
+            <div class="store-view-body-wrapper app-mt-3" v-if="state.storeSearchOpen === false">
                 <div class="store-product-filters">
                 
                       <div class="store-product-filters-container">

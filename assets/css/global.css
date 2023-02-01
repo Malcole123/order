@@ -123,6 +123,23 @@ h1 , h2 , h3, h4 , h5 , h6{
     width:100%!important;
 }
 
+  .app-skeleton {
+    animation: skeleton-loading 1.1s linear infinite alternate;
+    cursor:progress;
+    display:block;
+    width:100%;
+    height:inherit;
+  }
+  
+  @keyframes skeleton-loading {
+    0% {
+      background-color: hsl(0, 0%, 87%);
+    }
+    100% {
+        background-color: hsl(0, 0%, 76%);
+    }
+  }
+
 @media (max-width:992px) {
     .app-container-fluid, .app-container{
         padding-left:2%;
