@@ -180,19 +180,18 @@ export default {
     },
     async setUserFavourite(data){
       const { restaurant_id, setState } = data;
-      let dt = await this.$store.dispatch('user/userFavouritesToggleStore', {
-        store_id:restaurant_id,
-      })
-      console.log(dt)
-      if(dt.ok){
-          let message = setState === true ? 'New favourite added' : 'Store removed';
-          this.$toast.open({
-            message,
-            type:'dark',
-          })
+      const current_store_favourites = this.$auth.user.favourite_stores;
+      let use_favs = [];
+      let use_list = [...current_store_favourites];
+      if(current_store_favourites.includes(restaurant_id)){
+        use_favs   = [...use_list].filter((item,index)=>{ return item !== restaurant_id })
       }else{
-        
+        use_favs = [...use_list, restaurant_id];
       }
+      let dt = await this.$store.dispatch('user/userFavouritesToggleStore', {
+        store_ids:use_favs,
+      })
+      // const message = setState === true ? 'New favourite added' : 'Store removed';
     }
   }
 }

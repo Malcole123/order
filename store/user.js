@@ -304,31 +304,15 @@ const actions = {
         });
         return res_;
     },
-    async userFavouritesToggleStore(state, {store_id}){
-        let favs = state.getters['getStoreFavourites'];
-        let current_favourites = [];
-        if(favs.dbSynced === false){
-            current_favourites = this.$auth.user.favourite_stores;
-        }else{
-            current_favourites = favs.favourites;
-        }
-        let check_fav = [...current_favourites];
-        let use_fav = []
-        if(check_fav.includes(store_id)){
-            use_fav  = [...check_fav].filter((item,index)=>{
-                if(item === store_id){
-                    return item ;
-                }
-            })
-        }else{
-            use_fav.push(store_id);
-        }
+    async userFavouritesToggleStore(state, { store_ids }){
+        console.log(store_ids )
+        // Expecting store ids checked from auth state 
         let url = process.env.NUXT_ENV_USER_FAVOURITE_TOGGLE_STORE;
         let dt = await this.$axios.$post(url, {
-            store_favourites:use_fav,
+            store_favourites:store_ids,
         }).then(data=>{
             state.commit('setFavouriteFromDBStore', {
-                store_favourites:data.favourite_stores,
+                store_favourites:store_ids,
             })
             return {
                 ok:true,

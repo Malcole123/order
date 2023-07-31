@@ -174,7 +174,13 @@ export default {
     SvgLoaderVue,
   },
   async asyncData({isDev, $axios ,route, store, env, params, query, req, res, redirect, error}) {
-     
+    // Vital
+
+     const storeReference = params.store_reference ;
+    
+     return {
+      storeReference, 
+     }
   },
   fetchOnServer:false,
   async fetch(){
@@ -251,8 +257,8 @@ export default {
             this.pageData = set_data.data;
             this.formatPageResults();
             this.state.pageLoading = false;
+            this.state.showLoader = false;
             this.userDelayAction(()=>{
-                this.state.showLoader = false;
             }, 900)
           }else{
 
@@ -544,7 +550,7 @@ export default {
     position:fixed;
     top:auto;
     position:fixed;
-    bottom:0%;
+    bottom:70px;
     left:0%;
     right:0%;
     z-index:4;

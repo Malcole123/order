@@ -161,7 +161,7 @@
                     <span class="material-icons">
                             shopping_cart
                     </span>
-                    <span class="app-navlink-indicator">{{userCart.cart_items.length}}</span>
+                    <span class="app-navlink-indicator" v-if="userCart.cart_items.length > 0">{{userCart.cart_items.length}}</span>
                     <span class="app-navlink-item-text">
                         Cart
                     </span>
@@ -201,7 +201,7 @@
                                 :quantity="cItem.item.quantity"
                                 :desc="cItem.item.special_instruction"
                                 :price="cItem.item.price"
-                                @valueChanged="updateUserQuantity"
+                                @valueChanged="updateUserCartQuantity"
                                 :addons="cItem.item.addons"
                             />
                         </MazListItem>
@@ -395,7 +395,7 @@ export default {
         async syncUserCart(){
             await this.$store.dispatch('user/syncUserCartToDB');
         },
-        async updateUserQuantity(val){
+        async updateUserCartQuantity(val){
             let res_ = await this.$store.commit('user/updateSingleCartItem', {
                 id:val.id,
                 quantity:val.value,
@@ -716,10 +716,10 @@ export default {
         right:0;
         bottom:0;
         background:#F7EF81;
-        display:flex;
         justify-content:center;
         align-items:center;
         padding:0.4em 0.6em;
+        display:none;
     }
 
     .app-conversion-cta{
